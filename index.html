@@ -1,29 +1,144 @@
 <!DOCTYPE html>
-<!-- Sagt dem Browser: Das ist eine HTML5-Seite -->
+<!-- Sagt dem Browser: Das ist eine moderne HTML-Seite -->
 
 <html>
-  <!-- Start der gesamten Website -->
+<!-- Start der gesamten Website -->
 
-  <head>
-    <!-- Kopfbereich: Infos über die Seite (nicht sichtbar auf der Seite) -->
+<head>
+  <!-- Kopfbereich: Einstellungen (nicht sichtbar auf der Seite) -->
 
-    <title>Trainingsplan</title>
-    <!-- Titel der Seite (steht im Tab oben im Browser) -->
+  <title>Übungs-App</title>
+  <!-- Titel im Browser-Tab -->
 
-  </head>
+  <style>
+    /* Hier definieren wir das Aussehen (Design) */
 
-  <body>
-    <!-- Alles hier drin wird auf der Website angezeigt -->
+    #kalenderButton {
+      position: absolute; /* Position frei festlegen */
+      top: 10px;          /* 10px Abstand von oben */
+      right: 10px;        /* 10px Abstand von rechts */
+      font-size: 24px;    /* Größe des Symbols */
+      cursor: pointer;    /* Maus wird zur Hand beim Hover */
+    }
 
-    <h1>Willkommen zu meiner Übungs-App </h1>
-    <!-- Große Überschrift -->
+    #kalender {
+      display: none;      /* Kalender ist am Anfang versteckt */
+      border: 2px solid black; /* Schwarzer Rahmen */
+      padding: 10px;     /* Innenabstand */
+      margin-top: 50px;  /* Abstand nach oben */
+    }
 
-    <p>
-      Diese Website hilft dir dabei, deine täglichen Übungen zu verfolgen
-      und dich Schritt für Schritt zu verbessern.
-    </p>
-    <!-- Normaler Text / Absatz -->
+    .tag {
+      display: inline-block; /* Elemente nebeneinander */
+      width: 40px;           /* Breite */
+      height: 40px;          /* Höhe */
+      margin: 5px;           /* Abstand zwischen Tagen */
+      text-align: center;    /* Text zentrieren */
+      line-height: 40px;     /* Vertikal zentrieren */
+      border: 1px solid gray; /* Rahmen */
+    }
 
-  </body>
+    .heute {
+      border: 2px solid red; /* Heutiger Tag bekommt roten Rand */
+    }
+
+    .erledigt {
+      background-color: lightgreen; /* Training gemacht */
+    }
+
+    .verpasst {
+      background-color: lightcoral; /* Training verpasst */
+    }
+  </style>
+
+</head>
+
+<body>
+<!-- Alles hier wird sichtbar auf der Seite -->
+
+  <!-- Kalender-Icon oben rechts -->
+  <div id="kalenderButton" onclick="toggleKalender()">
+    📅
+  </div>
+  <!-- Beim Klick wird die Funktion toggleKalender ausgeführt -->
+
+  <!-- Hier wird später der Kalender angezeigt -->
+  <div id="kalender"></div>
+
+  <script>
+    // JavaScript = Logik der Seite
+
+    function toggleKalender() {
+      // Diese Funktion zeigt/versteckt den Kalender
+
+      const k = document.getElementById("kalender");
+      // Holt das Kalender-Element
+
+      if (k.style.display === "none") {
+        k.style.display = "block"; // anzeigen
+      } else {
+        k.style.display = "none";  // verstecken
+      }
+    }
+
+    const heute = new Date();
+    // Holt das aktuelle Datum
+
+    const heuteTag = heute.getDate();
+    // Holt den heutigen Tag (z. B. 3)
+
+    let trainingstage = JSON.parse(localStorage.getItem("tage")) || [];
+    // Lädt gespeicherte Trainingstage aus dem Browser
+    // Falls nichts gespeichert → leeres Array []
+
+    const kalender = document.getElementById("kalender");
+    // Holt den Bereich, wo der Kalender rein soll
+
+    for (let i = 1; i <= 30; i++) {
+      // Schleife: erstellt Tage 1 bis 30
+
+      let div = document.createElement("div");
+      // Erstellt ein neues HTML-Element
+
+      div.classList.add("tag");
+      // Gibt dem Element das Design "tag"
+
+      div.innerText = i;
+      // Zeigt die Zahl (Tag) an
+
+      if (i === heuteTag) {
+        div.classList.add("heute");
+        // Wenn heute → roter Rand
+      }
+
+      if (trainingstage.includes(i)) {
+        div.classList.add("erledigt");
+        // Wenn Training gemacht → grün
+      }
+
+      if (i < heuteTag && !trainingstage.includes(i)) {
+        div.classList.add("verpasst");
+        // Wenn vergangen & nichts gemacht → rot
+      }
+
+      div.onclick = function () {
+        // Wenn man auf einen Tag klickt:
+
+        trainingstage.push(i);
+        // Tag wird zur Liste hinzugefügt
+
+        localStorage.setItem("tage", JSON.stringify(trainingstage));
+        // Speichert die Liste im Browser
+
+        location.reload();
+        // Lädt die Seite neu (damit Farben aktualisiert werden)
+      };
+
+      kalender.appendChild(div);
+      // Fügt den Tag in den Kalender ein
+    }
+  </script>
+
+</body>
 
 </html>
