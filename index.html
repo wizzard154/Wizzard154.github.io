@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Trainings-App</title>
+  <title>Maltes Trainingsplan</title>
 
   <style>
     body {
@@ -12,7 +12,59 @@
     }
 
     /* =======================
-       📅 BUTTON
+       🏷️ TITEL
+    ======================= */
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    /* =======================
+       📱 ZEITSTRAHL (hochkant Cards)
+    ======================= */
+    #zeitstrahl {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 20px;
+      margin-top: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .zeitItem {
+      min-width: 120px;
+      height: 160px;
+      flex: 0 0 auto;
+      border-radius: 14px;
+      border: 2px solid gray;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: center;
+    }
+
+    .tagLabel {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .dateLabel {
+      font-size: 12px;
+      color: #555;
+    }
+
+    .trainingLabel {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .done { border-color: green; background: #d4f8d4; }
+    .missed { border-color: red; background: #ffd6d6; }
+    .future { border-color: gray; background: #eee; }
+
+    /* =======================
+       📆 KALENDER BUTTON
     ======================= */
     #kalenderButton {
       position: fixed;
@@ -30,6 +82,7 @@
       display: none;
       height: 50vh;
       overflow-y: scroll;
+      border-top: 2px solid #ccc;
       border-bottom: 2px solid #ccc;
       padding: 10px;
     }
@@ -68,66 +121,44 @@
     .erledigt { background: lightgreen; }
     .verpasst { background: lightcoral; }
 
-    /* =======================
-       📱 ZEITSTRAHL
-    ======================= */
-    #zeitstrahl {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      padding: 15px;
-      margin-top: 70px;
-      white-space: nowrap;
-      scroll-behavior: smooth; /* 🔥 smooth scroll */
-    }
-
-    .zeitItem {
-      min-width: 120px;
-      flex: 0 0 auto;
-      padding: 12px;
-      text-align: center;
-      border-radius: 12px;
-      border: 2px solid gray;
-      cursor: pointer;
-    }
-
   </style>
 </head>
 
 <body>
 
-  <!-- 📅 BUTTON -->
+  <!-- 🏷️ TITEL -->
+  <h1>Maltes Trainingsplan</h1>
+
+  <!-- 📱 ZEITSTRAHL -->
+  <div id="zeitstrahl"></div>
+
+  <!-- 📆 KALENDER BUTTON -->
   <div id="kalenderButton" onclick="toggleKalender()">📅</div>
 
   <!-- 📆 KALENDER -->
   <div id="kalender"></div>
 
-  <!-- 📱 ZEITSTRAHL -->
-  <div id="zeitstrahl"></div>
-
   <script>
 
-    /* =======================
-       💾 SPEICHER
-    ======================= */
+    // =======================
+    // 💾 SPEICHER
+    // =======================
     const STORAGE_KEY = "trainingstage";
     let trainingstage = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-    const heute = new Date();
-    const heuteKey = heute.toDateString();
+    const today = new Date();
+    const todayKey = today.toDateString();
 
     const kalender = document.getElementById("kalender");
     const zeitstrahl = document.getElementById("zeitstrahl");
-
-    const wochentage = ["Mo","Di","Mi","Do","Fr","Sa","So"];
 
     function save() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(trainingstage));
     }
 
-    /* =======================
-       📅 KALENDER TOGGLE
-    ======================= */
+    // =======================
+    // 📅 KALENDER TOGGLE
+    // =======================
     function toggleKalender() {
       const k = document.getElementById("kalender");
 
@@ -141,9 +172,87 @@
       }
     }
 
-    /* =======================
-       📆 KALENDER
-    ======================= */
+    // =======================
+    // 📱 ZEITSTRAHL (-2 bis +2)
+    // =======================
+    let todayElement = null;
+
+    function getLabel(i) {
+      if (i === -2) return "Vorgestern";
+      if (i === -1) return "Gestern";
+      if (i === 0) return "Heute";
+      if (i === 1) return "Morgen";
+      if (i === 2) return "Übermorgen";
+      return "";
+    }
+
+    for (let i = -2; i <= 2; i++) {
+
+      const d = new Date();
+      d.setDate(today.getDate() + i);
+
+      const key = d.toDateString();
+
+      const card = document.createElement("div");
+      card.classList.add("zeitItem");
+
+      if (trainingstage.includes(key)) {
+        card.classList.add("done");
+      }
+      else if (d < today) {
+        card.classList.add("missed");
+      }
+      else {
+        card.classList.add("future");
+      }
+
+      const label = document.createElement("div");
+      label.classList.add("tagLabel");
+      label.innerText = getLabel(i);
+
+      const date = document.createElement("div");
+      date.classList.add("dateLabel");
+
+      date.innerText = d.toLocaleDateString("de-DE", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short"
+      });
+
+      const training = document.createElement("div");
+      training.classList.add("trainingLabel");
+      training.innerText = "Training";
+
+      card.appendChild(label);
+      card.appendChild(date);
+      card.appendChild(training);
+
+      card.onclick = () => {
+        if (!trainingstage.includes(key)) {
+          trainingstage.push(key);
+          save();
+          location.reload();
+        }
+      };
+
+      zeitstrahl.appendChild(card);
+
+      if (i === 0) todayElement = card;
+    }
+
+    // 🎯 Zentrierung auf heute
+    setTimeout(() => {
+      if (todayElement) {
+        todayElement.scrollIntoView({
+          behavior: "smooth",
+          inline: "center"
+        });
+      }
+    }, 100);
+
+    // =======================
+    // 📆 KALENDER BAU
+    // =======================
     function buildCalendar() {
 
       for (let y = 2026; y <= 2030; y++) {
@@ -162,14 +271,14 @@
 
           month.appendChild(title);
 
-          if (y === heute.getFullYear() && m === heute.getMonth()) {
+          if (y === today.getFullYear() && m === today.getMonth()) {
             month.id = "currentMonth";
           }
 
           const w = document.createElement("div");
           w.classList.add("wochentage");
 
-          wochentage.forEach(t => {
+          ["Mo","Di","Mi","Do","Fr","Sa","So"].forEach(t => {
             const el = document.createElement("div");
             el.innerText = t;
             w.appendChild(el);
@@ -197,13 +306,13 @@
 
             const key = new Date(y, m, day).toDateString();
 
-            if (key === heuteKey) el.classList.add("heute");
+            if (key === todayKey) el.classList.add("heute");
 
             if (trainingstage.includes(key)) {
               el.classList.add("erledigt");
             }
 
-            if (new Date(y, m, day) < heute && !trainingstage.includes(key)) {
+            if (new Date(y, m, day) < today && !trainingstage.includes(key)) {
               el.classList.add("verpasst");
             }
 
@@ -224,75 +333,7 @@
       }
     }
 
-    /* =======================
-       📱 ZEITSTRAHL (-7 bis +7)
-       + 🎯 ZENTRIERT AUF HEUTE
-    ======================= */
-    function buildTimeline() {
-
-      let todayElement = null;
-
-      for (let i = -7; i <= 7; i++) {
-
-        const d = new Date();
-        d.setDate(heute.getDate() + i);
-
-        const key = d.toDateString();
-
-        const el = document.createElement("div");
-        el.classList.add("zeitItem");
-
-        el.innerText = d.toLocaleDateString("de-DE", {
-          weekday: "short",
-          day: "2-digit",
-          month: "short"
-        });
-
-        if (trainingstage.includes(key)) {
-          el.style.borderColor = "green";
-          el.style.background = "#d4f8d4";
-        }
-        else if (d < heute) {
-          el.style.borderColor = "red";
-          el.style.background = "#ffd6d6";
-        }
-        else {
-          el.style.borderColor = "gray";
-          el.style.background = "#eee";
-        }
-
-        if (i === 0) {
-          todayElement = el;
-        }
-
-        el.onclick = () => {
-          if (!trainingstage.includes(key)) {
-            trainingstage.push(key);
-            save();
-            location.reload();
-          }
-        };
-
-        zeitstrahl.appendChild(el);
-      }
-
-      /* 🎯 ZENTRIERUNG AUF HEUTE */
-      setTimeout(() => {
-        if (todayElement) {
-          todayElement.scrollIntoView({
-            behavior: "smooth",
-            inline: "center",
-            block: "nearest"
-          });
-        }
-      }, 100);
-    }
-
-    /* =======================
-       🚀 START
-    ======================= */
     buildCalendar();
-    buildTimeline();
 
   </script>
 
