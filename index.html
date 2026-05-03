@@ -2,43 +2,46 @@
 <html>
 
 <head>
-  <title>Übungs-App</title>
+  <title>Trainings-App</title>
 
   <style>
     body {
       font-family: Arial;
+      margin: 0;
+      padding: 0;
     }
 
-    /* 📅 Button oben rechts */
+    /* =========================
+       📅 KALENDER BUTTON
+    ========================== */
     #kalenderButton {
-      position: absolute;
+      position: fixed;
       top: 10px;
       right: 10px;
       font-size: 24px;
       cursor: pointer;
+      z-index: 10;
     }
 
-    /* 📜 Scrollbarer Kalender */
+    /* =========================
+       📆 KALENDER (Apple-like)
+    ========================== */
     #kalender {
       display: none;
-      height: 500px;
+      height: 50vh;
       overflow-y: scroll;
-      border: 2px solid black;
+      border-bottom: 2px solid #ccc;
       padding: 10px;
     }
 
-    /* 📦 Monatscontainer */
     .monat {
-      margin-bottom: 40px;
+      margin-bottom: 30px;
     }
 
-    /* 📅 Monatsüberschrift */
     .monat h2 {
       text-align: center;
-      margin-bottom: 10px;
     }
 
-    /* 🗓️ Wochentage */
     .wochentage {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -47,21 +50,20 @@
       margin-bottom: 5px;
     }
 
-    /* 📆 Tage-Grid */
     .tageGrid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 5px;
     }
 
-    /* 📅 Einzelner Tag */
     .tag {
-      height: 40px;
+      height: 35px;
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: 8px;
       cursor: pointer;
+      border: 1px solid #ddd;
     }
 
     .heute {
@@ -76,83 +78,95 @@
       background-color: lightcoral;
     }
 
-    .leer {
-      /* Leere Felder (für Monatsanfang) */
-    }
-    
+    /* =========================
+       📊 ZEITSTRAHL
+    ========================== */
     #zeitstrahl {
-  margin-top: 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+      margin-top: 70px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-.zeitItem {
-  width: 200px;
-  padding: 10px;
-  margin: 5px;
-  text-align: center;
-  border: 2px solid gray;
-  border-radius: 10px;
-}
+    .zeitItem {
+      width: 220px;
+      padding: 10px;
+      margin: 5px;
+      text-align: center;
+      border: 2px solid gray;
+      border-radius: 10px;
+    }
 
-.erledigt {
-  border-color: green;
-  background-color: #d4f8d4;
-}
+    .zeit-erledigt {
+      border-color: green;
+      background-color: #d4f8d4;
+    }
 
-.verpasst {
-  border-color: red;
-  background-color: #ffd6d6;
-}
+    .zeit-verpasst {
+      border-color: red;
+      background-color: #ffd6d6;
+    }
 
-.anstehend {
-  border-color: gray;
-  background-color: #eeeeee;
-}
-    
+    .zeit-anstehend {
+      border-color: gray;
+      background-color: #eee;
+    }
+
   </style>
 
 </head>
 
 <body>
 
-  <!-- 📅 Button -->
+  <!-- 📅 BUTTON -->
   <div id="kalenderButton" onclick="toggleKalender()">📅</div>
 
-  <!-- 📆 Kalender -->
+  <!-- 📆 KALENDER -->
   <div id="kalender"></div>
-  
+
+  <!-- 📊 ZEITSTRAHL -->
   <div id="zeitstrahl"></div>
 
   <script>
 
+    /* =========================
+       💾 SPEICHER (Browser)
+       trainingstage = erledigte Tage
+    ========================== */
+    let trainingstage = JSON.parse(localStorage.getItem("tage")) || [];
+
+    const kalender = document.getElementById("kalender");
+    const zeitstrahl = document.getElementById("zeitstrahl");
+
+    const heute = new Date();
+    const heuteString = heute.toDateString();
+
+    /* =========================
+       📅 KALENDER ÖFFNEN
+    ========================== */
     function toggleKalender() {
       const k = document.getElementById("kalender");
 
       if (k.style.display === "none") {
         k.style.display = "block";
 
+        // springt automatisch zum aktuellen Monat
         setTimeout(() => {
           document.getElementById("aktuellerMonat").scrollIntoView({
             behavior: "smooth",
             block: "center"
           });
         }, 100);
-
       } else {
         k.style.display = "none";
       }
     }
 
-    const kalender = document.getElementById("kalender");
-
-    const heute = new Date();
-    const heuteString = heute.toDateString();
-
-    let trainingstage = JSON.parse(localStorage.getItem("tage")) || [];
-
-    const wochentageListe = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+    /* =========================
+       📆 KALENDER ERSTELLEN
+       (2026–2030)
+    ========================== */
+    const wochentage = ["Mo","Di","Mi","Do","Fr","Sa","So"];
 
     for (let jahr = 2026; jahr <= 2030; jahr++) {
 
@@ -172,7 +186,7 @@
 
         monatDiv.appendChild(titel);
 
-        // 🎯 aktueller Monat markieren
+        /* 📌 aktueller Monat markieren */
         if (
           jahr === heute.getFullYear() &&
           monat === heute.getMonth()
@@ -180,132 +194,119 @@
           monatDiv.id = "aktuellerMonat";
         }
 
-        // 📅 Wochentage anzeigen
-        let wochentage = document.createElement("div");
-        wochentage.classList.add("wochentage");
+        /* 📅 Wochentage */
+        let woche = document.createElement("div");
+        woche.classList.add("wochentage");
 
-        wochentageListe.forEach(tag => {
-          let wd = document.createElement("div");
-          wd.innerText = tag;
-          wochentage.appendChild(wd);
+        wochentage.forEach(d => {
+          let el = document.createElement("div");
+          el.innerText = d;
+          woche.appendChild(el);
         });
 
-        monatDiv.appendChild(wochentage);
+        monatDiv.appendChild(woche);
 
-        // 📆 Tage-Grid
-        let tageGrid = document.createElement("div");
-        tageGrid.classList.add("tageGrid");
+        /* 📆 Tage Grid */
+        let grid = document.createElement("div");
+        grid.classList.add("tageGrid");
 
-        // Erster Tag des Monats
-        let ersterTag = new Date(jahr, monat, 1).getDay();
+        let erster = new Date(jahr, monat, 1).getDay();
+        erster = erster === 0 ? 6 : erster - 1;
 
-        // Umrechnung: Sonntag (0) → 6
-        ersterTag = ersterTag === 0 ? 6 : ersterTag - 1;
-
-        // Leere Felder am Anfang
-        for (let i = 0; i < ersterTag; i++) {
+        for (let i = 0; i < erster; i++) {
           let leer = document.createElement("div");
-          leer.classList.add("leer");
-          tageGrid.appendChild(leer);
+          grid.appendChild(leer);
         }
 
-        let tageImMonat = new Date(jahr, monat + 1, 0).getDate();
+        let tage = new Date(jahr, monat + 1, 0).getDate();
 
-        for (let tag = 1; tag <= tageImMonat; tag++) {
+        for (let tag = 1; tag <= tage; tag++) {
 
-          let tagDiv = document.createElement("div");
-          tagDiv.classList.add("tag");
-
-          tagDiv.innerText = tag;
+          let d = document.createElement("div");
+          d.classList.add("tag");
+          d.innerText = tag;
 
           let datumObj = new Date(jahr, monat, tag);
-          let datumKey = datumObj.toDateString();
+          let key = datumObj.toDateString();
 
-          if (datumKey === heuteString) {
-            tagDiv.classList.add("heute");
+          /* 🔴 HEUTE */
+          if (key === heuteString) {
+            d.classList.add("heute");
           }
 
-          if (trainingstage.includes(datumKey)) {
-            tagDiv.classList.add("erledigt");
+          /* 🟢 erledigt */
+          if (trainingstage.includes(key)) {
+            d.classList.add("erledigt");
           }
 
-          if (
-            datumObj < heute &&
-            !trainingstage.includes(datumKey)
-          ) {
-            tagDiv.classList.add("verpasst");
+          /* 🔴 verpasst */
+          if (datumObj < heute && !trainingstage.includes(key)) {
+            d.classList.add("verpasst");
           }
 
-          tagDiv.onclick = function () {
-            trainingstage.push(datumKey);
-
-            localStorage.setItem(
-              "tage",
-              JSON.stringify(trainingstage)
-            );
-
-            location.reload();
+          /* 💾 speichern beim Klick */
+          d.onclick = function () {
+            if (!trainingstage.includes(key)) {
+              trainingstage.push(key);
+              localStorage.setItem("tage", JSON.stringify(trainingstage));
+              location.reload();
+            }
           };
 
-          tageGrid.appendChild(tagDiv);
+          grid.appendChild(d);
         }
 
-        monatDiv.appendChild(tageGrid);
+        monatDiv.appendChild(grid);
         kalender.appendChild(monatDiv);
       }
     }
 
-    const zeitstrahl = document.getElementById("zeitstrahl");
+    /* =========================
+       📊 ZEITSTRAHL (-7 bis +7)
+    ========================== */
+    for (let i = -7; i <= 7; i++) {
 
-// Heutiges Datum
-const heute = new Date();
+      let datum = new Date();
+      datum.setDate(heute.getDate() + i);
 
-// Zeitraum: -7 bis +7 Tage
-for (let i = -7; i <= 7; i++) {
+      let key = datum.toDateString();
 
-  let datum = new Date();
-  datum.setDate(heute.getDate() + i);
+      let div = document.createElement("div");
+      div.classList.add("zeitItem");
 
-  let datumKey = datum.toDateString();
+      div.innerText = datum.toLocaleDateString("de-DE", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short"
+      });
 
-  let div = document.createElement("div");
-  div.classList.add("zeitItem");
+      /* 🟢 erledigt */
+      if (trainingstage.includes(key)) {
+        div.classList.add("zeit-erledigt");
+      }
 
-  // Datum anzeigen (z.B. 03. Mai)
-  div.innerText = datum.toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "short"
-  });
+      /* 🔴 vergangen ohne Training */
+      else if (datum < heute) {
+        div.classList.add("zeit-verpasst");
+      }
 
-  // STATUS bestimmen
+      /* ⚪ Zukunft */
+      else {
+        div.classList.add("zeit-anstehend");
+      }
 
-  if (trainingstage.includes(datumKey)) {
-    div.classList.add("erledigt"); // grün
-  }
+      /* 💾 Klick = speichern */
+      div.onclick = function () {
+        if (!trainingstage.includes(key)) {
+          trainingstage.push(key);
+          localStorage.setItem("tage", JSON.stringify(trainingstage));
+          location.reload();
+        }
+      };
 
-  else if (datum < heute) {
-    div.classList.add("verpasst"); // rot
-  }
+      zeitstrahl.appendChild(div);
+    }
 
-  else {
-    div.classList.add("anstehend"); // grau
-  }
-
-  // Klick = Training speichern
-  div.onclick = function () {
-    trainingstage.push(datumKey);
-
-    localStorage.setItem(
-      "tage",
-      JSON.stringify(trainingstage)
-    );
-
-    location.reload();
-  };
-
-  zeitstrahl.appendChild(div);
-}
-    
   </script>
 
 </body>
