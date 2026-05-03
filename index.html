@@ -79,6 +79,38 @@
     .leer {
       /* Leere Felder (für Monatsanfang) */
     }
+    
+    #zeitstrahl {
+  margin-top: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.zeitItem {
+  width: 200px;
+  padding: 10px;
+  margin: 5px;
+  text-align: center;
+  border: 2px solid gray;
+  border-radius: 10px;
+}
+
+.erledigt {
+  border-color: green;
+  background-color: #d4f8d4;
+}
+
+.verpasst {
+  border-color: red;
+  background-color: #ffd6d6;
+}
+
+.anstehend {
+  border-color: gray;
+  background-color: #eeeeee;
+}
+    
   </style>
 
 </head>
@@ -90,6 +122,8 @@
 
   <!-- 📆 Kalender -->
   <div id="kalender"></div>
+  
+  <div id="zeitstrahl"></div>
 
   <script>
 
@@ -221,6 +255,57 @@
       }
     }
 
+    const zeitstrahl = document.getElementById("zeitstrahl");
+
+// Heutiges Datum
+const heute = new Date();
+
+// Zeitraum: -7 bis +7 Tage
+for (let i = -7; i <= 7; i++) {
+
+  let datum = new Date();
+  datum.setDate(heute.getDate() + i);
+
+  let datumKey = datum.toDateString();
+
+  let div = document.createElement("div");
+  div.classList.add("zeitItem");
+
+  // Datum anzeigen (z.B. 03. Mai)
+  div.innerText = datum.toLocaleDateString("de-DE", {
+    day: "2-digit",
+    month: "short"
+  });
+
+  // STATUS bestimmen
+
+  if (trainingstage.includes(datumKey)) {
+    div.classList.add("erledigt"); // grün
+  }
+
+  else if (datum < heute) {
+    div.classList.add("verpasst"); // rot
+  }
+
+  else {
+    div.classList.add("anstehend"); // grau
+  }
+
+  // Klick = Training speichern
+  div.onclick = function () {
+    trainingstage.push(datumKey);
+
+    localStorage.setItem(
+      "tage",
+      JSON.stringify(trainingstage)
+    );
+
+    location.reload();
+  };
+
+  zeitstrahl.appendChild(div);
+}
+    
   </script>
 
 </body>
