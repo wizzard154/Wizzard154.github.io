@@ -9,7 +9,7 @@
       font-family: Arial;
     }
 
-    /* Kalender-Button */
+    /* 📅 Button oben rechts */
     #kalenderButton {
       position: absolute;
       top: 10px;
@@ -18,34 +18,49 @@
       cursor: pointer;
     }
 
-    /* Scrollbarer Kalender */
+    /* 📜 Scrollbarer Kalender */
     #kalender {
       display: none;
-      height: 400px;           /* Höhe festgelegt */
-      overflow-y: scroll;      /* Scrollen aktivieren */
+      height: 500px;
+      overflow-y: scroll;
       border: 2px solid black;
       padding: 10px;
     }
 
-    /* Monatsblock */
+    /* 📦 Monatscontainer */
     .monat {
-      margin-bottom: 30px;
+      margin-bottom: 40px;
     }
 
-    /* Monatsüberschrift */
+    /* 📅 Monatsüberschrift */
     .monat h2 {
-      margin: 5px 0;
+      text-align: center;
+      margin-bottom: 10px;
     }
 
-    /* Tage */
-    .tag {
-      display: inline-block;
-      width: 35px;
-      height: 35px;
-      margin: 3px;
+    /* 🗓️ Wochentage */
+    .wochentage {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
       text-align: center;
-      line-height: 35px;
-      border: 1px solid gray;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    /* 📆 Tage-Grid */
+    .tageGrid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    /* 📅 Einzelner Tag */
+    .tag {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
       cursor: pointer;
     }
 
@@ -60,16 +75,20 @@
     .verpasst {
       background-color: lightcoral;
     }
+
+    .leer {
+      /* Leere Felder (für Monatsanfang) */
+    }
   </style>
 
 </head>
 
 <body>
 
-  <!-- Kalender öffnen -->
+  <!-- 📅 Button -->
   <div id="kalenderButton" onclick="toggleKalender()">📅</div>
 
-  <!-- Kalender Container -->
+  <!-- 📆 Kalender -->
   <div id="kalender"></div>
 
   <script>
@@ -80,13 +99,13 @@
       if (k.style.display === "none") {
         k.style.display = "block";
 
-        // Nach Öffnen → aktuellen Monat anzeigen
         setTimeout(() => {
           document.getElementById("aktuellerMonat").scrollIntoView({
             behavior: "smooth",
             block: "center"
           });
         }, 100);
+
       } else {
         k.style.display = "none";
       }
@@ -96,14 +115,13 @@
 
     const heute = new Date();
     const heuteString = heute.toDateString();
-    // Eindeutiges Datum (z.B. "Sun May 03 2026")
 
     let trainingstage = JSON.parse(localStorage.getItem("tage")) || [];
 
-    // Schleife durch Jahre
+    const wochentageListe = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
     for (let jahr = 2026; jahr <= 2030; jahr++) {
 
-      // Schleife durch Monate
       for (let monat = 0; monat < 12; monat++) {
 
         let monatDiv = document.createElement("div");
@@ -117,11 +135,10 @@
           month: "long",
           year: "numeric"
         });
-        // z.B. "Mai 2026"
 
         monatDiv.appendChild(titel);
 
-        // Prüfen ob aktueller Monat
+        // 🎯 aktueller Monat markieren
         if (
           jahr === heute.getFullYear() &&
           monat === heute.getMonth()
@@ -129,7 +146,35 @@
           monatDiv.id = "aktuellerMonat";
         }
 
-        // Anzahl Tage im Monat berechnen
+        // 📅 Wochentage anzeigen
+        let wochentage = document.createElement("div");
+        wochentage.classList.add("wochentage");
+
+        wochentageListe.forEach(tag => {
+          let wd = document.createElement("div");
+          wd.innerText = tag;
+          wochentage.appendChild(wd);
+        });
+
+        monatDiv.appendChild(wochentage);
+
+        // 📆 Tage-Grid
+        let tageGrid = document.createElement("div");
+        tageGrid.classList.add("tageGrid");
+
+        // Erster Tag des Monats
+        let ersterTag = new Date(jahr, monat, 1).getDay();
+
+        // Umrechnung: Sonntag (0) → 6
+        ersterTag = ersterTag === 0 ? 6 : ersterTag - 1;
+
+        // Leere Felder am Anfang
+        for (let i = 0; i < ersterTag; i++) {
+          let leer = document.createElement("div");
+          leer.classList.add("leer");
+          tageGrid.appendChild(leer);
+        }
+
         let tageImMonat = new Date(jahr, monat + 1, 0).getDate();
 
         for (let tag = 1; tag <= tageImMonat; tag++) {
@@ -142,17 +187,14 @@
           let datumObj = new Date(jahr, monat, tag);
           let datumKey = datumObj.toDateString();
 
-          // Heute markieren
           if (datumKey === heuteString) {
             tagDiv.classList.add("heute");
           }
 
-          // Training gemacht
           if (trainingstage.includes(datumKey)) {
             tagDiv.classList.add("erledigt");
           }
 
-          // Vergangenheit ohne Training
           if (
             datumObj < heute &&
             !trainingstage.includes(datumKey)
@@ -160,7 +202,6 @@
             tagDiv.classList.add("verpasst");
           }
 
-          // Klick speichern
           tagDiv.onclick = function () {
             trainingstage.push(datumKey);
 
@@ -172,9 +213,10 @@
             location.reload();
           };
 
-          monatDiv.appendChild(tagDiv);
+          tageGrid.appendChild(tagDiv);
         }
 
+        monatDiv.appendChild(tageGrid);
         kalender.appendChild(monatDiv);
       }
     }
