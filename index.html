@@ -1,142 +1,184 @@
 <!DOCTYPE html>
-<!-- Sagt dem Browser: Das ist eine moderne HTML-Seite -->
-
 <html>
-<!-- Start der gesamten Website -->
 
 <head>
-  <!-- Kopfbereich: Einstellungen (nicht sichtbar auf der Seite) -->
-
   <title>Übungs-App</title>
-  <!-- Titel im Browser-Tab -->
 
   <style>
-    /* Hier definieren wir das Aussehen (Design) */
+    body {
+      font-family: Arial;
+    }
 
+    /* Kalender-Button */
     #kalenderButton {
-      position: absolute; /* Position frei festlegen */
-      top: 10px;          /* 10px Abstand von oben */
-      right: 10px;        /* 10px Abstand von rechts */
-      font-size: 24px;    /* Größe des Symbols */
-      cursor: pointer;    /* Maus wird zur Hand beim Hover */
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      cursor: pointer;
     }
 
+    /* Scrollbarer Kalender */
     #kalender {
-      display: none;      /* Kalender ist am Anfang versteckt */
-      border: 2px solid black; /* Schwarzer Rahmen */
-      padding: 10px;     /* Innenabstand */
-      margin-top: 50px;  /* Abstand nach oben */
+      display: none;
+      height: 400px;           /* Höhe festgelegt */
+      overflow-y: scroll;      /* Scrollen aktivieren */
+      border: 2px solid black;
+      padding: 10px;
     }
 
+    /* Monatsblock */
+    .monat {
+      margin-bottom: 30px;
+    }
+
+    /* Monatsüberschrift */
+    .monat h2 {
+      margin: 5px 0;
+    }
+
+    /* Tage */
     .tag {
-      display: inline-block; /* Elemente nebeneinander */
-      width: 40px;           /* Breite */
-      height: 40px;          /* Höhe */
-      margin: 5px;           /* Abstand zwischen Tagen */
-      text-align: center;    /* Text zentrieren */
-      line-height: 40px;     /* Vertikal zentrieren */
-      border: 1px solid gray; /* Rahmen */
+      display: inline-block;
+      width: 35px;
+      height: 35px;
+      margin: 3px;
+      text-align: center;
+      line-height: 35px;
+      border: 1px solid gray;
+      cursor: pointer;
     }
 
     .heute {
-      border: 2px solid red; /* Heutiger Tag bekommt roten Rand */
+      border: 2px solid red;
     }
 
     .erledigt {
-      background-color: lightgreen; /* Training gemacht */
+      background-color: lightgreen;
     }
 
     .verpasst {
-      background-color: lightcoral; /* Training verpasst */
+      background-color: lightcoral;
     }
   </style>
 
 </head>
 
 <body>
-<!-- Alles hier wird sichtbar auf der Seite -->
 
-  <!-- Kalender-Icon oben rechts -->
-  <div id="kalenderButton" onclick="toggleKalender()">
-    📅
-  </div>
-  <!-- Beim Klick wird die Funktion toggleKalender ausgeführt -->
+  <!-- Kalender öffnen -->
+  <div id="kalenderButton" onclick="toggleKalender()">📅</div>
 
-  <!-- Hier wird später der Kalender angezeigt -->
+  <!-- Kalender Container -->
   <div id="kalender"></div>
 
   <script>
-    // JavaScript = Logik der Seite
 
     function toggleKalender() {
-      // Diese Funktion zeigt/versteckt den Kalender
-
       const k = document.getElementById("kalender");
-      // Holt das Kalender-Element
 
       if (k.style.display === "none") {
-        k.style.display = "block"; // anzeigen
+        k.style.display = "block";
+
+        // Nach Öffnen → aktuellen Monat anzeigen
+        setTimeout(() => {
+          document.getElementById("aktuellerMonat").scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        }, 100);
       } else {
-        k.style.display = "none";  // verstecken
+        k.style.display = "none";
       }
     }
-
-    const heute = new Date();
-    // Holt das aktuelle Datum
-
-    const heuteTag = heute.getDate();
-    // Holt den heutigen Tag (z. B. 3)
-
-    let trainingstage = JSON.parse(localStorage.getItem("tage")) || [];
-    // Lädt gespeicherte Trainingstage aus dem Browser
-    // Falls nichts gespeichert → leeres Array []
 
     const kalender = document.getElementById("kalender");
-    // Holt den Bereich, wo der Kalender rein soll
 
-    for (let i = 1; i <= 30; i++) {
-      // Schleife: erstellt Tage 1 bis 30
+    const heute = new Date();
+    const heuteString = heute.toDateString();
+    // Eindeutiges Datum (z.B. "Sun May 03 2026")
 
-      let div = document.createElement("div");
-      // Erstellt ein neues HTML-Element
+    let trainingstage = JSON.parse(localStorage.getItem("tage")) || [];
 
-      div.classList.add("tag");
-      // Gibt dem Element das Design "tag"
+    // Schleife durch Jahre
+    for (let jahr = 2026; jahr <= 2030; jahr++) {
 
-      div.innerText = i;
-      // Zeigt die Zahl (Tag) an
+      // Schleife durch Monate
+      for (let monat = 0; monat < 12; monat++) {
 
-      if (i === heuteTag) {
-        div.classList.add("heute");
-        // Wenn heute → roter Rand
+        let monatDiv = document.createElement("div");
+        monatDiv.classList.add("monat");
+
+        let titel = document.createElement("h2");
+
+        let datum = new Date(jahr, monat);
+
+        titel.innerText = datum.toLocaleString("de-DE", {
+          month: "long",
+          year: "numeric"
+        });
+        // z.B. "Mai 2026"
+
+        monatDiv.appendChild(titel);
+
+        // Prüfen ob aktueller Monat
+        if (
+          jahr === heute.getFullYear() &&
+          monat === heute.getMonth()
+        ) {
+          monatDiv.id = "aktuellerMonat";
+        }
+
+        // Anzahl Tage im Monat berechnen
+        let tageImMonat = new Date(jahr, monat + 1, 0).getDate();
+
+        for (let tag = 1; tag <= tageImMonat; tag++) {
+
+          let tagDiv = document.createElement("div");
+          tagDiv.classList.add("tag");
+
+          tagDiv.innerText = tag;
+
+          let datumObj = new Date(jahr, monat, tag);
+          let datumKey = datumObj.toDateString();
+
+          // Heute markieren
+          if (datumKey === heuteString) {
+            tagDiv.classList.add("heute");
+          }
+
+          // Training gemacht
+          if (trainingstage.includes(datumKey)) {
+            tagDiv.classList.add("erledigt");
+          }
+
+          // Vergangenheit ohne Training
+          if (
+            datumObj < heute &&
+            !trainingstage.includes(datumKey)
+          ) {
+            tagDiv.classList.add("verpasst");
+          }
+
+          // Klick speichern
+          tagDiv.onclick = function () {
+            trainingstage.push(datumKey);
+
+            localStorage.setItem(
+              "tage",
+              JSON.stringify(trainingstage)
+            );
+
+            location.reload();
+          };
+
+          monatDiv.appendChild(tagDiv);
+        }
+
+        kalender.appendChild(monatDiv);
       }
-
-      if (trainingstage.includes(i)) {
-        div.classList.add("erledigt");
-        // Wenn Training gemacht → grün
-      }
-
-      if (i < heuteTag && !trainingstage.includes(i)) {
-        div.classList.add("verpasst");
-        // Wenn vergangen & nichts gemacht → rot
-      }
-
-      div.onclick = function () {
-        // Wenn man auf einen Tag klickt:
-
-        trainingstage.push(i);
-        // Tag wird zur Liste hinzugefügt
-
-        localStorage.setItem("tage", JSON.stringify(trainingstage));
-        // Speichert die Liste im Browser
-
-        location.reload();
-        // Lädt die Seite neu (damit Farben aktualisiert werden)
-      };
-
-      kalender.appendChild(div);
-      // Fügt den Tag in den Kalender ein
     }
+
   </script>
 
 </body>
