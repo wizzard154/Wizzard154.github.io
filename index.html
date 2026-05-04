@@ -55,10 +55,7 @@ h1 { text-align: center; }
 }
 
 .monat { margin-bottom: 25px; }
-
-.monat h3 {
-  text-align: center;
-}
+.monat h3 { text-align: center; }
 
 .wochentage {
   display: grid;
@@ -79,8 +76,6 @@ h1 { text-align: center; }
   justify-content: center;
   align-items: center;
   border-radius: 8px;
-
-  /* 👉 Kalender nicht klickbar */
   pointer-events: none;
 }
 
@@ -128,29 +123,18 @@ function getDifficulty() {
 }
 
 /* =======================
-   🏋️ WOCHENPLAN LOGIK
+   🏋️ WOCHENPLAN
 ======================= */
-
 function getTrainingType(date) {
+  const day = date.getDay();
 
-  const day = date.getDay(); 
-  // 👉 0 = Sonntag, 1 = Montag, ..., 6 = Samstag
-
-  if (day === 1 || day === 3 || day === 6) {
-    return "Calisthenics";
-  }
-
-  if (day === 2 || day === 4 || day === 0) {
-    return "Joggen";
-  }
-
-  if (day === 5) {
-    return "Tennis";
-  }
+  if (day === 1 || day === 3 || day === 6) return "Calisthenics";
+  if (day === 2 || day === 4 || day === 0) return "Joggen";
+  if (day === 5) return "Tennis";
 }
 
 /* =======================
-   🏋️ TRAINING TOGGLE
+   🏋️ TOGGLE
 ======================= */
 function toggleTraining(dateKey) {
 
@@ -170,7 +154,7 @@ function toggleTraining(dateKey) {
 }
 
 /* =======================
-   📱 ZEITSTRAHL
+   📱 ZEITSTRAHL (UPDATE!)
 ======================= */
 function renderZeitstrahl() {
 
@@ -190,17 +174,31 @@ function renderZeitstrahl() {
     const card = document.createElement("div");
     card.className = "zeitItem";
 
-    if (entry) card.classList.add("done");
-    else if (d < today) card.classList.add("missed");
-    else card.classList.add("future");
+    let statusText = "";
+    let statusClass = "";
 
-    // 👉 HIER wird jetzt das richtige Training eingesetzt
+    // 👉 NEUE LOGIK
+    if (entry) {
+      statusText = "✔️ erledigt";
+      statusClass = "done";
+    }
+    else if (d < today) {
+      statusText = "❌ verpasst";   // 👉 Vergangenheit
+      statusClass = "missed";
+    }
+    else {
+      statusText = "⏳ offen";      // 👉 Zukunft
+      statusClass = "future";
+    }
+
+    card.classList.add(statusClass);
+
     const trainingType = getTrainingType(d);
 
     card.innerHTML = `
       <div><b>${getLabel(i, d)}</b></div>
       <div>🏋️ ${trainingType}</div>
-      <div>${entry ? "✔️ erledigt" : "offen"}</div>
+      <div>${statusText}</div>
     `;
 
     card.onclick = () => toggleTraining(key);
@@ -226,7 +224,7 @@ function renderKalender() {
   const today = new Date();
   let todayElement = null;
 
-  const weekdays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+  const weekdays = ["Mo","Di","Mi","Do","Fr","Sa","So"];
 
   for (let y = 2026; y <= 2030; y++) {
     for (let m = 0; m < 12; m++) {
@@ -302,7 +300,6 @@ function renderKalender() {
    📅 BUTTON
 ======================= */
 function toggleKalender() {
-
   const el = document.getElementById("kalender");
 
   if (el.style.display === "block") {
