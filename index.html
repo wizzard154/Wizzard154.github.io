@@ -134,12 +134,25 @@ button {
   cursor: pointer;
 }
 
+/* 📅 Kalender Button */
 #kalenderButton {
   position: fixed;
   top: 10px;
   right: 10px;
   font-size: 24px;
   cursor: pointer;
+}
+
+/* 🔥 RESET BUTTON */
+#resetButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #ff4d4d;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
 }
 </style>
 </head>
@@ -151,6 +164,9 @@ button {
 <div id="zeitstrahl"></div>
 
 <div id="kalenderButton" onclick="openKalender()">📅</div>
+
+<!-- 🔥 Reset Button -->
+<button id="resetButton" onclick="resetData()">Reset</button>
 
 <!-- Kalender -->
 <div id="overlay" onclick="closeKalender()">
@@ -194,6 +210,20 @@ function save() {
 
 function getEntry(key) {
   return trainingData.find(e => e.date === key);
+}
+
+/* 🔥 RESET FUNKTION */
+function resetData() {
+
+  const confirmReset = confirm("Alle Trainingsdaten wirklich löschen?");
+
+  if (!confirmReset) return;
+
+  localStorage.removeItem(STORAGE_KEY);
+
+  trainingData = [];
+
+  renderAll();
 }
 
 /* Trainingsplan */
@@ -267,25 +297,20 @@ function renderZeitstrahl() {
 
     container.appendChild(card);
 
-    /* ⭐ HEUTE SPEICHERN */
-    if (i === 0) {
-      todayElement = card;
-    }
+    if (i === 0) todayElement = card;
   }
 
-  /* ⭐ NACH DEM RENDERN ZENTRIEREN */
   setTimeout(() => {
     if (todayElement) {
       todayElement.scrollIntoView({
         behavior: "smooth",
-        inline: "center",
-        block: "nearest"
+        inline: "center"
       });
     }
   }, 100);
 }
 
-/* Rest bleibt gleich */
+/* Rest unverändert */
 function handleClick(date, key, entry, type) {
   const today = new Date();
   if (date > today) return;
@@ -329,15 +354,11 @@ function showExercise() {
 
   if (activeWorkout.index === calisthenicsPlan.length - 1) {
     document.getElementById("workoutBtn").innerText = "Workout beenden";
-  } else {
-    document.getElementById("workoutBtn").innerText = "Übung geschafft";
   }
 }
 
 function updateProgressBar() {
-  const total = calisthenicsPlan.length;
-  const current = activeWorkout.index;
-  const percent = (current / total) * 100;
+  const percent = (activeWorkout.index / calisthenicsPlan.length) * 100;
   document.getElementById("progressBar").style.width = percent + "%";
 }
 
@@ -358,7 +379,6 @@ function saveWorkout(key) {
   renderAll();
 }
 
-/* Kalender bleibt unverändert */
 function openKalender() {
   document.getElementById("overlay").style.display = "flex";
   renderKalender();
