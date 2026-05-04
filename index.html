@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -9,9 +8,6 @@
 body { font-family: Arial; margin: 0; }
 h1 { text-align: center; }
 
-/* =======================
-   📱 ZEITSTRAHL
-======================= */
 #zeitstrahl {
   display: flex;
   gap: 12px;
@@ -36,9 +32,7 @@ h1 { text-align: center; }
 .missed { background: #ffd6d6; border-color: red; }
 .future { background: #eee; }
 
-/* =======================
-   📆 KALENDER POPUP
-======================= */
+/* Kalender */
 #overlay {
   position: fixed;
   top: 0;
@@ -91,10 +85,8 @@ h1 { text-align: center; }
 .verpasst { background: #f5a3a3; }
 .leer { background: transparent; }
 
-/* =======================
-   🏃 JOGGEN POPUP
-======================= */
-#jogOverlay {
+/* Popups */
+#jogOverlay, #workoutOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -115,21 +107,6 @@ h1 { text-align: center; }
   text-align: center;
 }
 
-/* =======================
-   🏋️ CALISTHENICS POPUP
-======================= */
-#workoutOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
 button {
   margin-top: 15px;
   padding: 10px;
@@ -141,9 +118,6 @@ button {
   cursor: pointer;
 }
 
-/* =======================
-   📅 BUTTON
-======================= */
 #kalenderButton {
   position: fixed;
   top: 10px;
@@ -162,12 +136,12 @@ button {
 
 <div id="kalenderButton" onclick="openKalender()">📅</div>
 
-<!-- 📆 Kalender -->
+<!-- Kalender -->
 <div id="overlay" onclick="closeKalender()">
   <div id="kalenderBox" onclick="event.stopPropagation()"></div>
 </div>
 
-<!-- 🏃 Joggen Popup -->
+<!-- Joggen -->
 <div id="jogOverlay" onclick="closeJog()">
   <div class="popupBox" onclick="event.stopPropagation()">
     <h3>Joggen</h3>
@@ -176,7 +150,7 @@ button {
   </div>
 </div>
 
-<!-- 🏋️ Calisthenics -->
+<!-- Calisthenics -->
 <div id="workoutOverlay">
   <div class="popupBox">
     <h3 id="exerciseTitle"></h3>
@@ -187,9 +161,6 @@ button {
 
 <script>
 
-/* =======================
-   🧠 DATEN
-======================= */
 const STORAGE_KEY = "trainingData";
 let trainingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
@@ -205,13 +176,28 @@ function getEntry(key) {
 }
 
 /* =======================
-   🏋️ TRAININGSPLAN
+   🆕 DEIN TRAININGSPLAN
 ======================= */
 const calisthenicsPlan = [
-  { name: "Liegestütze", reps: 15 },
-  { name: "Kniebeugen", reps: 20 },
-  { name: "Plank", reps: "45 Sekunden" },
-  { name: "Dips", reps: 10 }
+  { name: "Klimmzüge", reps: "3x" },
+  { name: "Klimmzüge", reps: "3x" },
+  { name: "Klimmzüge", reps: "3x" },
+
+  { name: "Dips", reps: "3x" },
+  { name: "Dips", reps: "3x" },
+  { name: "Dips", reps: "3x" },
+
+  { name: "Rudern", reps: "7x" },
+  { name: "Rudern", reps: "7x" },
+  { name: "Rudern", reps: "7x" },
+
+  { name: "Liegestütze", reps: "5x" },
+  { name: "Liegestütze", reps: "5x" },
+  { name: "Liegestütze", reps: "5x" },
+
+  { name: "Hanging Leg-Raises", reps: "5x" },
+  { name: "Hanging Leg-Raises", reps: "5x" },
+  { name: "Hanging Leg-Raises", reps: "5x" }
 ];
 
 function getTrainingType(date) {
@@ -221,18 +207,13 @@ function getTrainingType(date) {
   if (d === 5) return "Tennis";
 }
 
-/* =======================
-   📱 ZEITSTRAHL
-======================= */
+/* ZEITSTRAHL */
 function renderZeitstrahl() {
-
   const container = document.getElementById("zeitstrahl");
   container.innerHTML = "";
-
   const today = new Date();
 
   for (let i = -7; i <= 7; i++) {
-
     const d = new Date();
     d.setDate(today.getDate() + i);
 
@@ -260,7 +241,6 @@ function renderZeitstrahl() {
     `;
 
     card.onclick = () => handleClick(d, key, entry, type);
-
     container.appendChild(card);
 
     if (i === 0) {
@@ -269,11 +249,8 @@ function renderZeitstrahl() {
   }
 }
 
-/* =======================
-   🧠 KLICK LOGIK
-======================= */
+/* Klick */
 function handleClick(date, key, entry, type) {
-
   const today = new Date();
   if (date > today) return;
   if (entry) return;
@@ -292,9 +269,7 @@ function handleClick(date, key, entry, type) {
   }
 }
 
-/* =======================
-   🏃 JOGGEN
-======================= */
+/* Joggen */
 function confirmJog() {
   saveWorkout(selectedDateKey);
   closeJog();
@@ -304,9 +279,7 @@ function closeJog() {
   document.getElementById("jogOverlay").style.display = "none";
 }
 
-/* =======================
-   🏋️ CALISTHENICS
-======================= */
+/* Calisthenics */
 function openWorkout() {
   document.getElementById("workoutOverlay").style.display = "flex";
   showExercise();
@@ -314,7 +287,6 @@ function openWorkout() {
 
 function showExercise() {
   const ex = calisthenicsPlan[activeWorkout.index];
-
   document.getElementById("exerciseTitle").innerText = ex.name;
   document.getElementById("exerciseInfo").innerText = ex.reps;
 
@@ -326,7 +298,6 @@ function showExercise() {
 }
 
 function nextExercise() {
-
   activeWorkout.index++;
 
   if (activeWorkout.index >= calisthenicsPlan.length) {
@@ -337,18 +308,14 @@ function nextExercise() {
   }
 }
 
-/* =======================
-   💾 SPEICHERN
-======================= */
+/* speichern */
 function saveWorkout(key) {
   trainingData.push({ date: key });
   save();
   renderAll();
 }
 
-/* =======================
-   📆 KALENDER
-======================= */
+/* Kalender */
 function openKalender() {
   document.getElementById("overlay").style.display = "flex";
   renderKalender();
@@ -359,7 +326,6 @@ function closeKalender() {
 }
 
 function renderKalender() {
-
   const box = document.getElementById("kalenderBox");
   box.innerHTML = "";
 
@@ -426,9 +392,7 @@ function renderKalender() {
   setTimeout(()=>{ if(todayEl) todayEl.scrollIntoView({block:"center"}); },100);
 }
 
-/* =======================
-   🧠 LABEL
-======================= */
+/* Label */
 function getLabel(i,date){
   if(i===0) return "Heute";
   if(i===-1) return "Gestern";
@@ -437,9 +401,7 @@ function getLabel(i,date){
   return date.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"short"});
 }
 
-/* =======================
-   START
-======================= */
+/* Start */
 function renderAll(){
   renderZeitstrahl();
 }
