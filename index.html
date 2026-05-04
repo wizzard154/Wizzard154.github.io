@@ -123,18 +123,6 @@
     }
 
     // =======================
-    // 🧠 LABEL LOGIK
-    // =======================
-    function getLabel(i) {
-      if (i === -2) return "Vorgestern";
-      if (i === -1) return "Gestern";
-      if (i === 0) return "Heute";
-      if (i === 1) return "Morgen";
-      if (i === 2) return "Übermorgen";
-      return "";
-    }
-
-    // =======================
     // 📱 ZEITSTRAHL BAU (-7 bis +7)
     // =======================
     let todayElement = null;
@@ -159,11 +147,7 @@
         card.classList.add("future");
       }
 
-      // 🧱 1. ZEILE
-      const label = document.createElement("div");
-      label.classList.add("tagLabel");
-      label.innerText = getLabel(i);
-
+      
       // 📅 2. ZEILE
       const date = document.createElement("div");
       date.classList.add("dateLabel");
