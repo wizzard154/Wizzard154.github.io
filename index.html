@@ -36,7 +36,7 @@ h1 { text-align: center; }
 .future { background: #eee; }
 
 /* =======================
-   📆 KALENDER (Apple Style)
+   📆 KALENDER
 ======================= */
 #kalenderButton {
   position: fixed;
@@ -54,34 +54,25 @@ h1 { text-align: center; }
   padding: 10px;
 }
 
-/* Monatscontainer */
-.monat {
-  margin-bottom: 25px;
-}
+.monat { margin-bottom: 25px; }
 
-/* Monatstitel */
 .monat h3 {
   text-align: center;
-  margin: 10px 0;
 }
 
-/* Wochentage */
 .wochentage {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
   font-weight: bold;
-  margin-bottom: 5px;
 }
 
-/* Tage */
 .tageGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 4px;
 }
 
-/* Einzelner Tag */
 .tag {
   height: 40px;
   display: flex;
@@ -89,27 +80,14 @@ h1 { text-align: center; }
   align-items: center;
   border-radius: 8px;
 
-  /* 👉 keine Interaktion */
+  /* 👉 Kalender nicht klickbar */
   pointer-events: none;
 }
 
-/* Farben */
-.heute {
-  border: 2px solid red;
-  font-weight: bold;
-}
-
-.erledigt {
-  background: #a8e6a3;
-}
-
-.verpasst {
-  background: #f5a3a3;
-}
-
-.leer {
-  background: transparent;
-}
+.heute { border: 2px solid red; }
+.erledigt { background: #a8e6a3; }
+.verpasst { background: #f5a3a3; }
+.leer { background: transparent; }
 
 </style>
 </head>
@@ -150,7 +128,29 @@ function getDifficulty() {
 }
 
 /* =======================
-   🏋️ TRAINING
+   🏋️ WOCHENPLAN LOGIK
+======================= */
+
+function getTrainingType(date) {
+
+  const day = date.getDay(); 
+  // 👉 0 = Sonntag, 1 = Montag, ..., 6 = Samstag
+
+  if (day === 1 || day === 3 || day === 6) {
+    return "Calisthenics";
+  }
+
+  if (day === 2 || day === 4 || day === 0) {
+    return "Joggen";
+  }
+
+  if (day === 5) {
+    return "Tennis";
+  }
+}
+
+/* =======================
+   🏋️ TRAINING TOGGLE
 ======================= */
 function toggleTraining(dateKey) {
 
@@ -194,10 +194,13 @@ function renderZeitstrahl() {
     else if (d < today) card.classList.add("missed");
     else card.classList.add("future");
 
+    // 👉 HIER wird jetzt das richtige Training eingesetzt
+    const trainingType = getTrainingType(d);
+
     card.innerHTML = `
       <div><b>${getLabel(i, d)}</b></div>
-      <div>🏋️ Level ${entry ? entry.difficulty : "-"}</div>
-      <div>${entry ? "✔️ erledigt" : "Training"}</div>
+      <div>🏋️ ${trainingType}</div>
+      <div>${entry ? "✔️ erledigt" : "offen"}</div>
     `;
 
     card.onclick = () => toggleTraining(key);
@@ -213,7 +216,7 @@ function renderZeitstrahl() {
 }
 
 /* =======================
-   📆 APPLE KALENDER
+   📆 KALENDER
 ======================= */
 function renderKalender() {
 
@@ -237,7 +240,6 @@ function renderKalender() {
         year: "numeric"
       });
 
-      // 👉 Wochentage (Apple Style)
       const header = document.createElement("div");
       header.className = "wochentage";
 
@@ -250,11 +252,9 @@ function renderKalender() {
       const grid = document.createElement("div");
       grid.className = "tageGrid";
 
-      // 👉 Startposition berechnen (Montag = 0)
       let firstDay = new Date(y, m, 1).getDay();
       firstDay = firstDay === 0 ? 6 : firstDay - 1;
 
-      // 👉 LEERE FELDER (wichtig für Apple Look)
       for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement("div");
         empty.className = "tag leer";
@@ -285,19 +285,15 @@ function renderKalender() {
       }
 
       month.appendChild(title);
-      month.appendChild(header); // 👉 Wochentage oben
+      month.appendChild(header);
       month.appendChild(grid);
-
       kalender.appendChild(month);
     }
   }
 
-  // 👉 Scroll zu heute
   setTimeout(() => {
     if (todayElement) {
-      todayElement.scrollIntoView({
-        block: "center"
-      });
+      todayElement.scrollIntoView({ block: "center" });
     }
   }, 100);
 }
