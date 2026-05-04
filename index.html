@@ -29,7 +29,7 @@
 
     .zeitItem {
       min-width: 120px;
-      height: 160px;
+      height: 170px;
       flex: 0 0 auto;
       border-radius: 14px;
       border: 2px solid gray;
@@ -40,9 +40,21 @@
       text-align: center;
     }
 
-    .tagLabel { font-weight: bold; font-size: 14px; }
-    .dateLabel { font-size: 12px; color: #555; }
-    .trainingLabel { font-size: 12px; color: #999; }
+    .topLabel {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .imagePlaceholder {
+      height: 70px;
+      background: #ddd;
+      border-radius: 10px;
+    }
+
+    .trainingLabel {
+      font-size: 12px;
+      color: #666;
+    }
 
     .done { border-color: green; background: #d4f8d4; }
     .missed { border-color: red; background: #ffd6d6; }
@@ -70,15 +82,9 @@
     .monat { margin-bottom: 30px; }
     .monat h2 { text-align: center; }
 
-    .wochentage,
     .tageGrid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-    }
-
-    .wochentage {
-      font-weight: bold;
-      text-align: center;
     }
 
     .tag {
@@ -123,7 +129,26 @@
     }
 
     // =======================
-    // 📱 ZEITSTRAHL BAU (-7 bis +7)
+    // 🧠 LABEL LOGIK
+    // =======================
+    function getLabel(i, date) {
+
+      if (i === -2) return "Vorgestern";
+      if (i === -1) return "Gestern";
+      if (i === 0) return "Heute";
+      if (i === 1) return "Morgen";
+      if (i === 2) return "Übermorgen";
+
+      // 👉 sonst: Datum anzeigen
+      return date.toLocaleDateString("de-DE", {
+        weekday:"short",
+        day: "2-digit",
+        month: "short"
+      });
+    }
+
+    // =======================
+    // 📱 ZEITSTRAHL (-7 bis +7)
     // =======================
     let todayElement = null;
 
@@ -137,6 +162,7 @@
       const card = document.createElement("div");
       card.classList.add("zeitItem");
 
+      // Status
       if (trainingstage.includes(key)) {
         card.classList.add("done");
       }
@@ -147,26 +173,31 @@
         card.classList.add("future");
       }
 
-      
-      // 📅 2. ZEILE
-      const date = document.createElement("div");
-      date.classList.add("dateLabel");
-      date.innerText = d.toLocaleDateString("de-DE", {
-        weekday: "short",
-        day: "2-digit",
-        month: "short"
-      });
+      // =======================
+      // 🧱 1. ZEILE
+      // =======================
+      const top = document.createElement("div");
+      top.classList.add("topLabel");
+      top.innerText = getLabel(i, d);
 
+      // =======================
+      // 🖼️ 2. ZEILE (Bild Platzhalter)
+      // =======================
+      const img = document.createElement("div");
+      img.classList.add("imagePlaceholder");
+
+      // =======================
       // 🏋️ 3. ZEILE
+      // =======================
       const training = document.createElement("div");
       training.classList.add("trainingLabel");
       training.innerText = "Training";
 
-      card.appendChild(label);
-      card.appendChild(date);
+      card.appendChild(top);
+      card.appendChild(img);
       card.appendChild(training);
 
-      // 💾 Klick speichern
+      // Klick speichern
       card.onclick = () => {
         if (!trainingstage.includes(key)) {
           trainingstage.push(key);
@@ -180,13 +211,11 @@
       if (i === 0) todayElement = card;
     }
 
-    // =======================
-    // 🎯 ZENTRIERUNG (Heute ±2 sichtbar)
-    // =======================
+    // Zentrieren auf heute
     setTimeout(() => {
       if (todayElement) {
         todayElement.scrollIntoView({
-          behavior: "auto",   // ⚠️ kein smooth → wirkt natürlicher beim Laden
+          behavior: "auto",
           inline: "center"
         });
       }
