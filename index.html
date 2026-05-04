@@ -8,6 +8,9 @@
 body { font-family: Arial; margin: 0; }
 h1 { text-align: center; }
 
+/* =======================
+   📱 ZEITSTRAHL
+======================= */
 #zeitstrahl {
   display: flex;
   gap: 12px;
@@ -28,10 +31,13 @@ h1 { text-align: center; }
   cursor: pointer;
 }
 
-.done { border-color: green; background: #d4f8d4; }
-.missed { border-color: red; background: #ffd6d6; }
+.done { background: #d4f8d4; border-color: green; }
+.missed { background: #ffd6d6; border-color: red; }
 .future { background: #eee; }
 
+/* =======================
+   📆 KALENDER
+======================= */
 #kalenderButton {
   position: fixed;
   top: 10px;
@@ -59,12 +65,16 @@ h1 { text-align: center; }
   justify-content: center;
   align-items: center;
   border: 1px solid #ddd;
-  cursor: pointer;
+
+  /* 👉 Kein Klick mehr möglich */
+  pointer-events: none;
 }
 
+/* Farben */
 .heute { border: 2px solid red; }
 .erledigt { background: lightgreen; }
 .verpasst { background: lightcoral; }
+
 </style>
 </head>
 
@@ -79,20 +89,10 @@ h1 { text-align: center; }
 
 <script>
 
-// =======================
-// 🧠 DATENSTRUKTUR
-// =======================
+/* =======================
+   🧠 DATEN
+======================= */
 const STORAGE_KEY = "trainingData";
-
-/*
-Neue Struktur:
-[
-  {
-    date: "Mon May 04 2026",
-    difficulty: 1
-  }
-]
-*/
 let trainingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
 function save() {
@@ -103,26 +103,24 @@ function getEntry(dateKey) {
   return trainingData.find(e => e.date === dateKey);
 }
 
-// =======================
-// 📈 PROGRESS SYSTEM
-// =======================
+/* =======================
+   📈 SCHWIERIGKEIT
+======================= */
 function getDifficulty() {
-  const doneCount = trainingData.length;
-
-  if (doneCount > 20) return 3;
-  if (doneCount > 10) return 2;
+  const count = trainingData.length;
+  if (count > 20) return 3;
+  if (count > 10) return 2;
   return 1;
 }
 
-// =======================
-// 🧠 TRAINING SPEICHERN
-// =======================
+/* =======================
+   🏋️ TRAINING (nur Zeitstrahl!)
+======================= */
 function toggleTraining(dateKey) {
 
   const entry = getEntry(dateKey);
 
   if (entry) {
-    // entfernen
     trainingData = trainingData.filter(e => e.date !== dateKey);
   } else {
     trainingData.push({
@@ -135,9 +133,9 @@ function toggleTraining(dateKey) {
   renderAll();
 }
 
-// =======================
-// 📱 ZEITSTRAHL
-// =======================
+/* =======================
+   📱 ZEITSTRAHL
+======================= */
 function renderZeitstrahl() {
 
   const container = document.getElementById("zeitstrahl");
@@ -163,9 +161,10 @@ function renderZeitstrahl() {
     card.innerHTML = `
       <div><b>${getLabel(i, d)}</b></div>
       <div>🏋️ Level ${entry ? entry.difficulty : "-"}</div>
-      <div>${entry ? "✔️" : "Training"}</div>
+      <div>${entry ? "✔️ erledigt" : "Training"}</div>
     `;
 
+    // 👉 EINZIGE Stelle zum Eintragen!
     card.onclick = () => toggleTraining(key);
 
     container.appendChild(card);
@@ -178,15 +177,16 @@ function renderZeitstrahl() {
   }
 }
 
-// =======================
-// 📆 KALENDER
-// =======================
+/* =======================
+   📆 KALENDER
+======================= */
 function renderKalender() {
 
   const kalender = document.getElementById("kalender");
   kalender.innerHTML = "";
 
   const today = new Date();
+  let todayElement = null; // 👉 merken wo "heute" ist
 
   for (let y = 2026; y <= 2030; y++) {
     for (let m = 0; m < 12; m++) {
@@ -195,7 +195,8 @@ function renderKalender() {
 
       const title = document.createElement("h3");
       title.innerText = new Date(y, m).toLocaleString("de-DE", {
-        month: "long", year: "numeric"
+        month: "long",
+        year: "numeric"
       });
 
       const grid = document.createElement("div");
@@ -213,11 +214,17 @@ function renderKalender() {
         const key = date.toDateString();
         const entry = getEntry(key);
 
-        if (key === today.toDateString()) el.classList.add("heute");
+        if (key === today.toDateString()) {
+          el.classList.add("heute");
+
+          // 👉 HIER speichern wir das heutige Element
+          todayElement = el;
+        }
+
         if (entry) el.classList.add("erledigt");
         if (date < today && !entry) el.classList.add("verpasst");
 
-        el.onclick = () => toggleTraining(key);
+        // ❌ KEIN onclick mehr!
 
         grid.appendChild(el);
       }
@@ -227,16 +234,38 @@ function renderKalender() {
       kalender.appendChild(month);
     }
   }
+
+  // 👉 NACH DEM RENDERN: Scroll zu heute
+  setTimeout(() => {
+    if (todayElement) {
+      todayElement.scrollIntoView({
+        behavior: "auto",
+        block: "center" // 👉 vertikal mittig
+      });
+    }
+  }, 100);
 }
 
+/* =======================
+   📅 BUTTON
+======================= */
 function toggleKalender() {
+
   const el = document.getElementById("kalender");
-  el.style.display = el.style.display === "block" ? "none" : "block";
+
+  if (el.style.display === "block") {
+    el.style.display = "none";
+  } else {
+    el.style.display = "block";
+
+    // 👉 WICHTIG: neu rendern beim Öffnen
+    renderKalender();
+  }
 }
 
-// =======================
-// 🧠 LABELS
-// =======================
+/* =======================
+   🧠 LABELS
+======================= */
 function getLabel(i, date) {
   if (i === 0) return "Heute";
   if (i === -1) return "Gestern";
@@ -249,9 +278,9 @@ function getLabel(i, date) {
   });
 }
 
-// =======================
-// 🔄 RENDER
-// =======================
+/* =======================
+   🔄 RENDER
+======================= */
 function renderAll() {
   renderZeitstrahl();
   renderKalender();
