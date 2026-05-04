@@ -8,9 +8,6 @@
 body { font-family: Arial; margin: 0; }
 h1 { text-align: center; }
 
-/* =======================
-   📱 ZEITSTRAHL
-======================= */
 #zeitstrahl {
   display: flex;
   gap: 12px;
@@ -36,34 +33,9 @@ h1 { text-align: center; }
 .future { background: #eee; }
 
 /* =======================
-   📆 OVERLAY (Kalender)
+   🏋️ WORKOUT POPUP
 ======================= */
-#overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-#kalenderBox {
-  background: white;
-  width: 90%;
-  max-width: 500px;
-  height: 70%;
-  overflow-y: scroll;
-  border-radius: 15px;
-  padding: 15px;
-}
-
-/* =======================
-   🏋️ TRAINING POPUP
-======================= */
-#trainingOverlay {
+#workoutOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -75,12 +47,12 @@ h1 { text-align: center; }
   align-items: center;
 }
 
-#trainingBox {
+#workoutBox {
   background: white;
   padding: 20px;
   border-radius: 15px;
-  width: 80%;
-  max-width: 300px;
+  width: 85%;
+  max-width: 320px;
   text-align: center;
 }
 
@@ -92,18 +64,6 @@ button {
   background: #4CAF50;
   color: white;
   font-size: 16px;
-  cursor: pointer;
-}
-
-/* =======================
-   📆 BUTTON
-======================= */
-#kalenderButton {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  font-size: 24px;
-  cursor: pointer;
 }
 
 </style>
@@ -115,19 +75,12 @@ button {
 
 <div id="zeitstrahl"></div>
 
-<div id="kalenderButton" onclick="openKalender()">📅</div>
-
-<!-- Kalender -->
-<div id="overlay" onclick="closeKalender()">
-  <div id="kalenderBox" onclick="event.stopPropagation()"></div>
-</div>
-
-<!-- 🏋️ Training Popup -->
-<div id="trainingOverlay" onclick="closeTrainingPopup()">
-  <div id="trainingBox" onclick="event.stopPropagation()">
-    <h3 id="trainingTitle"></h3>
-    <p id="trainingText"></p>
-    <button onclick="confirmTraining()">Workout beenden</button>
+<!-- 🏋️ WORKOUT POPUP -->
+<div id="workoutOverlay">
+  <div id="workoutBox">
+    <h3 id="exerciseTitle"></h3>
+    <p id="exerciseInfo"></p>
+    <button id="workoutBtn" onclick="nextExercise()">Übung geschafft</button>
   </div>
 </div>
 
@@ -139,8 +92,6 @@ button {
 const STORAGE_KEY = "trainingData";
 let trainingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-let selectedDateKey = null;
-
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(trainingData));
 }
@@ -150,7 +101,22 @@ function getEntry(dateKey) {
 }
 
 /* =======================
-   🏋️ TRAININGSTYP
+   🏋️ CALISTHENICS PLAN
+======================= */
+const calisthenicsPlan = [
+  { name: "Liegestütze", reps: 15 },
+  { name: "Kniebeugen", reps: 20 },
+  { name: "Plank", reps: "45 Sekunden" },
+  { name: "Dips", reps: 10 }
+];
+
+/* =======================
+   🧠 WORKOUT STATE
+======================= */
+let activeWorkout = null;
+
+/* =======================
+   🏋️ TRAINING TYPE
 ======================= */
 function getTrainingType(date) {
   const day = date.getDay();
@@ -199,93 +165,112 @@ function renderZeitstrahl() {
 
     card.classList.add(statusClass);
 
-    const trainingType = getTrainingType(d);
+    const type = getTrainingType(d);
 
     card.innerHTML = `
       <div><b>${getLabel(i, d)}</b></div>
-      <div>🏋️ ${trainingType}</div>
+      <div>🏋️ ${type}</div>
       <div>${statusText}</div>
     `;
 
-    // 👉 NEUE LOGIK
-    card.onclick = () => handleTrainingClick(d, key, entry);
+    // 👉 Klick startet Workout
+    card.onclick = () => startWorkout(d, key, entry, type);
 
     container.appendChild(card);
-
-    if (i === 0) {
-      setTimeout(() => {
-        card.scrollIntoView({ inline: "center" });
-      }, 50);
-    }
   }
 }
 
 /* =======================
-   🧠 KLICK LOGIK
+   🏋️ WORKOUT START
 ======================= */
-function handleTrainingClick(date, key, entry) {
+function startWorkout(date, key, entry, type) {
 
   const today = new Date();
 
-  // 👉 Zukunft blockieren
   if (date > today) return;
-
-  // 👉 schon erledigt → nichts machen
   if (entry) return;
 
-  const type = getTrainingType(date);
+  // 👉 nur Calisthenics hat Plan
+  if (type === "Calisthenics") {
 
-  selectedDateKey = key;
+    activeWorkout = {
+      dateKey: key,
+      index: 0
+    };
 
-  // 👉 Nur Joggen Popup
-  if (type === "Joggen") {
-    openTrainingPopup("Joggen", "Training beendet?");
+    openWorkout();
   } else {
     // andere direkt speichern
-    saveTraining();
+    saveWorkout(key);
   }
 }
 
 /* =======================
-   🏋️ POPUP
+   🏋️ WORKOUT UI
 ======================= */
-function openTrainingPopup(title, text) {
-  document.getElementById("trainingTitle").innerText = title;
-  document.getElementById("trainingText").innerText = text;
-  document.getElementById("trainingOverlay").style.display = "flex";
+function openWorkout() {
+  document.getElementById("workoutOverlay").style.display = "flex";
+  showExercise();
 }
 
-function closeTrainingPopup() {
-  document.getElementById("trainingOverlay").style.display = "none";
+function closeWorkout() {
+  document.getElementById("workoutOverlay").style.display = "none";
 }
 
-function confirmTraining() {
-  saveTraining();
-  closeTrainingPopup();
+/* =======================
+   🏋️ ÜBUNG ANZEIGEN
+======================= */
+function showExercise() {
+
+  const ex = calisthenicsPlan[activeWorkout.index];
+
+  document.getElementById("exerciseTitle").innerText =
+    ex.name;
+
+  document.getElementById("exerciseInfo").innerText =
+    ex.reps;
+
+  // letzter Schritt?
+  if (activeWorkout.index === calisthenicsPlan.length - 1) {
+    document.getElementById("workoutBtn").innerText = "Workout beenden";
+  } else {
+    document.getElementById("workoutBtn").innerText = "Übung geschafft";
+  }
+}
+
+/* =======================
+   🏋️ NÄCHSTE ÜBUNG
+======================= */
+function nextExercise() {
+
+  activeWorkout.index++;
+
+  if (activeWorkout.index >= calisthenicsPlan.length) {
+
+    // 👉 WORKOUT FERTIG
+    saveWorkout(activeWorkout.dateKey);
+    closeWorkout();
+
+  } else {
+    showExercise();
+  }
 }
 
 /* =======================
    💾 SPEICHERN
 ======================= */
-function saveTraining() {
-  trainingData.push({ date: selectedDateKey });
+function saveWorkout(key) {
+
+  trainingData.push({
+    date: key
+  });
+
   save();
   renderZeitstrahl();
 }
 
 /* =======================
-   📆 KALENDER
-======================= */
-function openKalender() {
-  document.getElementById("overlay").style.display = "flex";
-}
-
-function closeKalender() {
-  document.getElementById("overlay").style.display = "none";
-}
-
-/* =======================
-   🧠 LABELS
+   🧠 LABEL
 ======================= */
 function getLabel(i, date) {
   if (i === 0) return "Heute";
@@ -300,7 +285,7 @@ function getLabel(i, date) {
 }
 
 /* =======================
-   🔄 START
+   START
 ======================= */
 renderZeitstrahl();
 
