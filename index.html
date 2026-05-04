@@ -36,8 +36,35 @@ h1 { text-align: center; }
 .future { background: #eee; }
 
 /* =======================
-   📆 KALENDER
+   📆 POPUP OVERLAY
 ======================= */
+
+/* 👉 DUNKLER HINTERGRUND */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+
+  display: none; /* versteckt */
+  justify-content: center;
+  align-items: center;
+}
+
+/* 👉 KALENDER BOX */
+#kalenderBox {
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  height: 70%;
+  overflow-y: scroll;
+  border-radius: 15px;
+  padding: 15px;
+}
+
+/* Button */
 #kalenderButton {
   position: fixed;
   top: 10px;
@@ -46,14 +73,7 @@ h1 { text-align: center; }
   cursor: pointer;
 }
 
-#kalender {
-  display: none;
-  height: 50vh;
-  overflow-y: scroll;
-  border-top: 2px solid #ccc;
-  padding: 10px;
-}
-
+/* Monatsdesign */
 .monat { margin-bottom: 25px; }
 .monat h3 { text-align: center; }
 
@@ -93,8 +113,16 @@ h1 { text-align: center; }
 
 <div id="zeitstrahl"></div>
 
-<div id="kalenderButton" onclick="toggleKalender()">📅</div>
-<div id="kalender"></div>
+<!-- 📅 Button -->
+<div id="kalenderButton" onclick="openKalender()">📅</div>
+
+<!-- 🌑 OVERLAY -->
+<div id="overlay" onclick="closeKalender()">
+
+  <!-- ❗ Stoppt Schließen wenn man im Kalender klickt -->
+  <div id="kalenderBox" onclick="event.stopPropagation()"></div>
+
+</div>
 
 <script>
 
@@ -154,7 +182,7 @@ function toggleTraining(dateKey) {
 }
 
 /* =======================
-   📱 ZEITSTRAHL (UPDATE!)
+   📱 ZEITSTRAHL
 ======================= */
 function renderZeitstrahl() {
 
@@ -177,17 +205,16 @@ function renderZeitstrahl() {
     let statusText = "";
     let statusClass = "";
 
-    // 👉 NEUE LOGIK
     if (entry) {
       statusText = "✔️ erledigt";
       statusClass = "done";
     }
     else if (d < today) {
-      statusText = "❌ verpasst";   // 👉 Vergangenheit
+      statusText = "❌ verpasst";
       statusClass = "missed";
     }
     else {
-      statusText = "⏳ offen";      // 👉 Zukunft
+      statusText = "⏳ offen";
       statusClass = "future";
     }
 
@@ -214,11 +241,11 @@ function renderZeitstrahl() {
 }
 
 /* =======================
-   📆 KALENDER
+   📆 POPUP KALENDER
 ======================= */
 function renderKalender() {
 
-  const kalender = document.getElementById("kalender");
+  const kalender = document.getElementById("kalenderBox");
   kalender.innerHTML = "";
 
   const today = new Date();
@@ -297,17 +324,16 @@ function renderKalender() {
 }
 
 /* =======================
-   📅 BUTTON
+   📅 OPEN / CLOSE
 ======================= */
-function toggleKalender() {
-  const el = document.getElementById("kalender");
 
-  if (el.style.display === "block") {
-    el.style.display = "none";
-  } else {
-    el.style.display = "block";
-    renderKalender();
-  }
+function openKalender() {
+  document.getElementById("overlay").style.display = "flex";
+  renderKalender();
+}
+
+function closeKalender() {
+  document.getElementById("overlay").style.display = "none";
 }
 
 /* =======================
@@ -330,7 +356,6 @@ function getLabel(i, date) {
 ======================= */
 function renderAll() {
   renderZeitstrahl();
-  renderKalender();
 }
 
 renderAll();
