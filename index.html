@@ -1,299 +1,265 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="de">
 <head>
-  <title>Maltes Trainingsplan</title>
+<meta charset="UTF-8">
+<title>Maltes Trainingsplan</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      margin: 0;
-      padding: 0;
-    }
+<style>
+body { font-family: Arial; margin: 0; }
+h1 { text-align: center; }
 
-    h1 {
-      text-align: center;
-      margin-top: 20px;
-    }
+#zeitstrahl {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 20px;
+}
 
-    /* =======================
-       📱 ZEITSTRAHL
-    ======================= */
-    #zeitstrahl {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding: 20px;
-      scroll-behavior: smooth;
-    }
+.zeitItem {
+  min-width: 120px;
+  height: 170px;
+  border-radius: 14px;
+  border: 2px solid gray;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  cursor: pointer;
+}
 
-    .zeitItem {
-      min-width: 120px;
-      height: 170px;
-      flex: 0 0 auto;
-      border-radius: 14px;
-      border: 2px solid gray;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      text-align: center;
-    }
+.done { border-color: green; background: #d4f8d4; }
+.missed { border-color: red; background: #ffd6d6; }
+.future { background: #eee; }
 
-    .topLabel {
-      font-weight: bold;
-      font-size: 14px;
-    }
+#kalenderButton {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
 
-    .imagePlaceholder {
-      height: 70px;
-      background: #ddd;
-      border-radius: 10px;
-    }
+#kalender {
+  display: none;
+  height: 50vh;
+  overflow-y: scroll;
+  border-top: 2px solid #ccc;
+  padding: 10px;
+}
 
-    .trainingLabel {
-      font-size: 12px;
-      color: #666;
-    }
+.tageGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
 
-    .done { border-color: green; background: #d4f8d4; }
-    .missed { border-color: red; background: #ffd6d6; }
-    .future { border-color: gray; background: #eee; }
+.tag {
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
 
-    /* =======================
-       📆 KALENDER
-    ======================= */
-    #kalenderButton {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      font-size: 24px;
-      cursor: pointer;
-    }
-
-    #kalender {
-      display: none;
-      height: 50vh;
-      overflow-y: scroll;
-      border-top: 2px solid #ccc;
-      padding: 10px;
-    }
-
-    .monat { margin-bottom: 30px; }
-    .monat h2 { text-align: center; }
-
-    .tageGrid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-    }
-
-    .tag {
-      height: 35px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      cursor: pointer;
-    }
-
-    .heute { border: 2px solid red; }
-    .erledigt { background: lightgreen; }
-    .verpasst { background: lightcoral; }
-
-  </style>
+.heute { border: 2px solid red; }
+.erledigt { background: lightgreen; }
+.verpasst { background: lightcoral; }
+</style>
 </head>
 
 <body>
 
-  <h1>Maltes Trainingsplan</h1>
+<h1>Maltes Trainingsplan</h1>
 
-  <div id="zeitstrahl"></div>
+<div id="zeitstrahl"></div>
 
-  <div id="kalenderButton" onclick="toggleKalender()">📅</div>
-  <div id="kalender"></div>
+<div id="kalenderButton" onclick="toggleKalender()">📅</div>
+<div id="kalender"></div>
 
-  <script>
+<script>
 
-    const STORAGE_KEY = "trainingstage";
-    let trainingstage = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+// =======================
+// 🧠 DATENSTRUKTUR
+// =======================
+const STORAGE_KEY = "trainingData";
 
-    const today = new Date();
-    const todayKey = today.toDateString();
+/*
+Neue Struktur:
+[
+  {
+    date: "Mon May 04 2026",
+    difficulty: 1
+  }
+]
+*/
+let trainingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-    const zeitstrahl = document.getElementById("zeitstrahl");
-    const kalender = document.getElementById("kalender");
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(trainingData));
+}
 
-    function save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(trainingstage));
+function getEntry(dateKey) {
+  return trainingData.find(e => e.date === dateKey);
+}
+
+// =======================
+// 📈 PROGRESS SYSTEM
+// =======================
+function getDifficulty() {
+  const doneCount = trainingData.length;
+
+  if (doneCount > 20) return 3;
+  if (doneCount > 10) return 2;
+  return 1;
+}
+
+// =======================
+// 🧠 TRAINING SPEICHERN
+// =======================
+function toggleTraining(dateKey) {
+
+  const entry = getEntry(dateKey);
+
+  if (entry) {
+    // entfernen
+    trainingData = trainingData.filter(e => e.date !== dateKey);
+  } else {
+    trainingData.push({
+      date: dateKey,
+      difficulty: getDifficulty()
+    });
+  }
+
+  save();
+  renderAll();
+}
+
+// =======================
+// 📱 ZEITSTRAHL
+// =======================
+function renderZeitstrahl() {
+
+  const container = document.getElementById("zeitstrahl");
+  container.innerHTML = "";
+
+  const today = new Date();
+
+  for (let i = -7; i <= 7; i++) {
+
+    const d = new Date();
+    d.setDate(today.getDate() + i);
+
+    const key = d.toDateString();
+    const entry = getEntry(key);
+
+    const card = document.createElement("div");
+    card.className = "zeitItem";
+
+    if (entry) card.classList.add("done");
+    else if (d < today) card.classList.add("missed");
+    else card.classList.add("future");
+
+    card.innerHTML = `
+      <div><b>${getLabel(i, d)}</b></div>
+      <div>🏋️ Level ${entry ? entry.difficulty : "-"}</div>
+      <div>${entry ? "✔️" : "Training"}</div>
+    `;
+
+    card.onclick = () => toggleTraining(key);
+
+    container.appendChild(card);
+
+    if (i === 0) {
+      setTimeout(() => {
+        card.scrollIntoView({ inline: "center" });
+      }, 50);
     }
+  }
+}
 
-    // =======================
-    // 🧠 LABEL LOGIK
-    // =======================
-    function getLabel(i, date) {
+// =======================
+// 📆 KALENDER
+// =======================
+function renderKalender() {
 
-      if (i === -2) return "Vorgestern";
-      if (i === -1) return "Gestern";
-      if (i === 0) return "Heute";
-      if (i === 1) return "Morgen";
-      if (i === 2) return "Übermorgen";
+  const kalender = document.getElementById("kalender");
+  kalender.innerHTML = "";
 
-      // 👉 sonst: Datum anzeigen
-      return date.toLocaleDateString("de-DE", {
-        weekday:"short",
-        day: "2-digit",
-        month: "short"
+  const today = new Date();
+
+  for (let y = 2026; y <= 2030; y++) {
+    for (let m = 0; m < 12; m++) {
+
+      const month = document.createElement("div");
+
+      const title = document.createElement("h3");
+      title.innerText = new Date(y, m).toLocaleString("de-DE", {
+        month: "long", year: "numeric"
       });
+
+      const grid = document.createElement("div");
+      grid.className = "tageGrid";
+
+      const days = new Date(y, m + 1, 0).getDate();
+
+      for (let d = 1; d <= days; d++) {
+
+        const el = document.createElement("div");
+        el.className = "tag";
+        el.innerText = d;
+
+        const date = new Date(y, m, d);
+        const key = date.toDateString();
+        const entry = getEntry(key);
+
+        if (key === today.toDateString()) el.classList.add("heute");
+        if (entry) el.classList.add("erledigt");
+        if (date < today && !entry) el.classList.add("verpasst");
+
+        el.onclick = () => toggleTraining(key);
+
+        grid.appendChild(el);
+      }
+
+      month.appendChild(title);
+      month.appendChild(grid);
+      kalender.appendChild(month);
     }
+  }
+}
 
-    // =======================
-    // 📱 ZEITSTRAHL (-7 bis +7)
-    // =======================
-    let todayElement = null;
+function toggleKalender() {
+  const el = document.getElementById("kalender");
+  el.style.display = el.style.display === "block" ? "none" : "block";
+}
 
-    for (let i = -7; i <= 7; i++) {
+// =======================
+// 🧠 LABELS
+// =======================
+function getLabel(i, date) {
+  if (i === 0) return "Heute";
+  if (i === -1) return "Gestern";
+  if (i === 1) return "Morgen";
 
-      const d = new Date();
-      d.setDate(today.getDate() + i);
+  return date.toLocaleDateString("de-DE", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short"
+  });
+}
 
-      const key = d.toDateString();
+// =======================
+// 🔄 RENDER
+// =======================
+function renderAll() {
+  renderZeitstrahl();
+  renderKalender();
+}
 
-      const card = document.createElement("div");
-      card.classList.add("zeitItem");
+renderAll();
 
-      // Status
-      if (trainingstage.includes(key)) {
-        card.classList.add("done");
-      }
-      else if (d < today) {
-        card.classList.add("missed");
-      }
-      else {
-        card.classList.add("future");
-      }
-
-      // =======================
-      // 🧱 1. ZEILE
-      // =======================
-      const top = document.createElement("div");
-      top.classList.add("topLabel");
-      top.innerText = getLabel(i, d);
-
-      // =======================
-      // 🖼️ 2. ZEILE (Bild Platzhalter)
-      // =======================
-      const img = document.createElement("div");
-      img.classList.add("imagePlaceholder");
-
-      // =======================
-      // 🏋️ 3. ZEILE
-      // =======================
-      const training = document.createElement("div");
-      training.classList.add("trainingLabel");
-      training.innerText = "Training";
-
-      card.appendChild(top);
-      card.appendChild(img);
-      card.appendChild(training);
-
-      // Klick speichern
-      card.onclick = () => {
-        if (!trainingstage.includes(key)) {
-          trainingstage.push(key);
-          save();
-          location.reload();
-        }
-      };
-
-      zeitstrahl.appendChild(card);
-
-      if (i === 0) todayElement = card;
-    }
-
-    // Zentrieren auf heute
-    setTimeout(() => {
-      if (todayElement) {
-        todayElement.scrollIntoView({
-          behavior: "auto",
-          inline: "center"
-        });
-      }
-    }, 50);
-
-    // =======================
-    // 📆 KALENDER
-    // =======================
-    function toggleKalender() {
-      kalender.style.display =
-        kalender.style.display === "block" ? "none" : "block";
-    }
-
-    function buildCalendar() {
-
-      for (let y = 2026; y <= 2030; y++) {
-        for (let m = 0; m < 12; m++) {
-
-          const month = document.createElement("div");
-          month.classList.add("monat");
-
-          const title = document.createElement("h2");
-          const d = new Date(y, m);
-
-          title.innerText = d.toLocaleString("de-DE", {
-            month: "long",
-            year: "numeric"
-          });
-
-          month.appendChild(title);
-
-          const grid = document.createElement("div");
-          grid.classList.add("tageGrid");
-
-          let first = new Date(y, m, 1).getDay();
-          first = first === 0 ? 6 : first - 1;
-
-          for (let i = 0; i < first; i++) {
-            grid.appendChild(document.createElement("div"));
-          }
-
-          const days = new Date(y, m + 1, 0).getDate();
-
-          for (let day = 1; day <= days; day++) {
-
-            const el = document.createElement("div");
-            el.classList.add("tag");
-            el.innerText = day;
-
-            const key = new Date(y, m, day).toDateString();
-
-            if (key === todayKey) el.classList.add("heute");
-            if (trainingstage.includes(key)) el.classList.add("erledigt");
-            if (new Date(y, m, day) < today && !trainingstage.includes(key)) {
-              el.classList.add("verpasst");
-            }
-
-            el.onclick = () => {
-              if (!trainingstage.includes(key)) {
-                trainingstage.push(key);
-                save();
-                location.reload();
-              }
-            };
-
-            grid.appendChild(el);
-          }
-
-          month.appendChild(grid);
-          kalender.appendChild(month);
-        }
-      }
-    }
-
-    buildCalendar();
-
-  </script>
+</script>
 
 </body>
-
 </html>
