@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -8,6 +9,9 @@
 body { font-family: Arial; margin: 0; }
 h1 { text-align: center; }
 
+/* =======================
+   📱 ZEITSTRAHL
+======================= */
 #zeitstrahl {
   display: flex;
   gap: 12px;
@@ -33,7 +37,86 @@ h1 { text-align: center; }
 .future { background: #eee; }
 
 /* =======================
-   🏋️ WORKOUT POPUP
+   📆 KALENDER POPUP
+======================= */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+#kalenderBox {
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  height: 70%;
+  overflow-y: scroll;
+  border-radius: 15px;
+  padding: 15px;
+}
+
+.monat { margin-bottom: 25px; }
+.monat h3 { text-align: center; }
+
+.wochentage {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: bold;
+}
+
+.tageGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.tag {
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.heute { border: 2px solid red; }
+.erledigt { background: #a8e6a3; }
+.verpasst { background: #f5a3a3; }
+.leer { background: transparent; }
+
+/* =======================
+   🏃 JOGGEN POPUP
+======================= */
+#jogOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.popupBox {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  width: 80%;
+  max-width: 300px;
+  text-align: center;
+}
+
+/* =======================
+   🏋️ CALISTHENICS POPUP
 ======================= */
 #workoutOverlay {
   position: fixed;
@@ -47,25 +130,27 @@ h1 { text-align: center; }
   align-items: center;
 }
 
-#workoutBox {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  width: 85%;
-  max-width: 320px;
-  text-align: center;
-}
-
 button {
   margin-top: 15px;
   padding: 10px;
-  border: none;
   border-radius: 10px;
+  border: none;
   background: #4CAF50;
   color: white;
   font-size: 16px;
+  cursor: pointer;
 }
 
+/* =======================
+   📅 BUTTON
+======================= */
+#kalenderButton {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -75,9 +160,25 @@ button {
 
 <div id="zeitstrahl"></div>
 
-<!-- 🏋️ WORKOUT POPUP -->
+<div id="kalenderButton" onclick="openKalender()">📅</div>
+
+<!-- 📆 Kalender -->
+<div id="overlay" onclick="closeKalender()">
+  <div id="kalenderBox" onclick="event.stopPropagation()"></div>
+</div>
+
+<!-- 🏃 Joggen Popup -->
+<div id="jogOverlay" onclick="closeJog()">
+  <div class="popupBox" onclick="event.stopPropagation()">
+    <h3>Joggen</h3>
+    <p>Training beendet?</p>
+    <button onclick="confirmJog()">Workout beenden</button>
+  </div>
+</div>
+
+<!-- 🏋️ Calisthenics -->
 <div id="workoutOverlay">
-  <div id="workoutBox">
+  <div class="popupBox">
     <h3 id="exerciseTitle"></h3>
     <p id="exerciseInfo"></p>
     <button id="workoutBtn" onclick="nextExercise()">Übung geschafft</button>
@@ -92,16 +193,19 @@ button {
 const STORAGE_KEY = "trainingData";
 let trainingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
+let selectedDateKey = null;
+let activeWorkout = null;
+
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(trainingData));
 }
 
-function getEntry(dateKey) {
-  return trainingData.find(e => e.date === dateKey);
+function getEntry(key) {
+  return trainingData.find(e => e.date === key);
 }
 
 /* =======================
-   🏋️ CALISTHENICS PLAN
+   🏋️ TRAININGSPLAN
 ======================= */
 const calisthenicsPlan = [
   { name: "Liegestütze", reps: 15 },
@@ -110,20 +214,11 @@ const calisthenicsPlan = [
   { name: "Dips", reps: 10 }
 ];
 
-/* =======================
-   🧠 WORKOUT STATE
-======================= */
-let activeWorkout = null;
-
-/* =======================
-   🏋️ TRAINING TYPE
-======================= */
 function getTrainingType(date) {
-  const day = date.getDay();
-
-  if (day === 1 || day === 3 || day === 6) return "Calisthenics";
-  if (day === 2 || day === 4 || day === 0) return "Joggen";
-  if (day === 5) return "Tennis";
+  const d = date.getDay();
+  if (d === 1 || d === 3 || d === 6) return "Calisthenics";
+  if (d === 2 || d === 4 || d === 0) return "Joggen";
+  if (d === 5) return "Tennis";
 }
 
 /* =======================
@@ -147,90 +242,82 @@ function renderZeitstrahl() {
     const card = document.createElement("div");
     card.className = "zeitItem";
 
-    let statusText = "";
-    let statusClass = "";
+    let status = "";
+    let cls = "";
 
-    if (entry) {
-      statusText = "✔️ erledigt";
-      statusClass = "done";
-    }
-    else if (d < today) {
-      statusText = "❌ verpasst";
-      statusClass = "missed";
-    }
-    else {
-      statusText = "⏳ offen";
-      statusClass = "future";
-    }
+    if (entry) { status = "✔️ erledigt"; cls = "done"; }
+    else if (d < today) { status = "❌ verpasst"; cls = "missed"; }
+    else { status = "⏳ offen"; cls = "future"; }
 
-    card.classList.add(statusClass);
+    card.classList.add(cls);
 
     const type = getTrainingType(d);
 
     card.innerHTML = `
-      <div><b>${getLabel(i, d)}</b></div>
+      <div><b>${getLabel(i,d)}</b></div>
       <div>🏋️ ${type}</div>
-      <div>${statusText}</div>
+      <div>${status}</div>
     `;
 
-    // 👉 Klick startet Workout
-    card.onclick = () => startWorkout(d, key, entry, type);
+    card.onclick = () => handleClick(d, key, entry, type);
 
     container.appendChild(card);
+
+    if (i === 0) {
+      setTimeout(() => card.scrollIntoView({ inline: "center" }), 50);
+    }
   }
 }
 
 /* =======================
-   🏋️ WORKOUT START
+   🧠 KLICK LOGIK
 ======================= */
-function startWorkout(date, key, entry, type) {
+function handleClick(date, key, entry, type) {
 
   const today = new Date();
-
   if (date > today) return;
   if (entry) return;
 
-  // 👉 nur Calisthenics hat Plan
-  if (type === "Calisthenics") {
+  selectedDateKey = key;
 
-    activeWorkout = {
-      dateKey: key,
-      index: 0
-    };
-
+  if (type === "Joggen") {
+    document.getElementById("jogOverlay").style.display = "flex";
+  }
+  else if (type === "Calisthenics") {
+    activeWorkout = { index: 0, dateKey: key };
     openWorkout();
-  } else {
-    // andere direkt speichern
+  }
+  else {
     saveWorkout(key);
   }
 }
 
 /* =======================
-   🏋️ WORKOUT UI
+   🏃 JOGGEN
+======================= */
+function confirmJog() {
+  saveWorkout(selectedDateKey);
+  closeJog();
+}
+
+function closeJog() {
+  document.getElementById("jogOverlay").style.display = "none";
+}
+
+/* =======================
+   🏋️ CALISTHENICS
 ======================= */
 function openWorkout() {
   document.getElementById("workoutOverlay").style.display = "flex";
   showExercise();
 }
 
-function closeWorkout() {
-  document.getElementById("workoutOverlay").style.display = "none";
-}
-
-/* =======================
-   🏋️ ÜBUNG ANZEIGEN
-======================= */
 function showExercise() {
-
   const ex = calisthenicsPlan[activeWorkout.index];
 
-  document.getElementById("exerciseTitle").innerText =
-    ex.name;
+  document.getElementById("exerciseTitle").innerText = ex.name;
+  document.getElementById("exerciseInfo").innerText = ex.reps;
 
-  document.getElementById("exerciseInfo").innerText =
-    ex.reps;
-
-  // letzter Schritt?
   if (activeWorkout.index === calisthenicsPlan.length - 1) {
     document.getElementById("workoutBtn").innerText = "Workout beenden";
   } else {
@@ -238,19 +325,13 @@ function showExercise() {
   }
 }
 
-/* =======================
-   🏋️ NÄCHSTE ÜBUNG
-======================= */
 function nextExercise() {
 
   activeWorkout.index++;
 
   if (activeWorkout.index >= calisthenicsPlan.length) {
-
-    // 👉 WORKOUT FERTIG
     saveWorkout(activeWorkout.dateKey);
-    closeWorkout();
-
+    document.getElementById("workoutOverlay").style.display = "none";
   } else {
     showExercise();
   }
@@ -260,34 +341,109 @@ function nextExercise() {
    💾 SPEICHERN
 ======================= */
 function saveWorkout(key) {
-
-  trainingData.push({
-    date: key
-  });
-
+  trainingData.push({ date: key });
   save();
-  renderZeitstrahl();
+  renderAll();
+}
+
+/* =======================
+   📆 KALENDER
+======================= */
+function openKalender() {
+  document.getElementById("overlay").style.display = "flex";
+  renderKalender();
+}
+
+function closeKalender() {
+  document.getElementById("overlay").style.display = "none";
+}
+
+function renderKalender() {
+
+  const box = document.getElementById("kalenderBox");
+  box.innerHTML = "";
+
+  const today = new Date();
+  let todayEl = null;
+
+  const weekdays = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+
+  for (let y = 2026; y <= 2030; y++) {
+    for (let m = 0; m < 12; m++) {
+
+      const month = document.createElement("div");
+      month.className = "monat";
+
+      const title = document.createElement("h3");
+      title.innerText = new Date(y,m).toLocaleString("de-DE",{month:"long",year:"numeric"});
+
+      const header = document.createElement("div");
+      header.className = "wochentage";
+
+      weekdays.forEach(d=>{
+        const el=document.createElement("div");
+        el.innerText=d;
+        header.appendChild(el);
+      });
+
+      const grid = document.createElement("div");
+      grid.className = "tageGrid";
+
+      let first = new Date(y,m,1).getDay();
+      first = first===0?6:first-1;
+
+      for(let i=0;i<first;i++){
+        const empty=document.createElement("div");
+        empty.className="tag leer";
+        grid.appendChild(empty);
+      }
+
+      const days = new Date(y,m+1,0).getDate();
+
+      for(let d=1;d<=days;d++){
+        const el=document.createElement("div");
+        el.className="tag";
+        el.innerText=d;
+
+        const date=new Date(y,m,d);
+        const key=date.toDateString();
+        const entry=getEntry(key);
+
+        if(key===today.toDateString()){ el.classList.add("heute"); todayEl=el; }
+        if(entry) el.classList.add("erledigt");
+        if(date<today && !entry) el.classList.add("verpasst");
+
+        grid.appendChild(el);
+      }
+
+      month.appendChild(title);
+      month.appendChild(header);
+      month.appendChild(grid);
+      box.appendChild(month);
+    }
+  }
+
+  setTimeout(()=>{ if(todayEl) todayEl.scrollIntoView({block:"center"}); },100);
 }
 
 /* =======================
    🧠 LABEL
 ======================= */
-function getLabel(i, date) {
-  if (i === 0) return "Heute";
-  if (i === -1) return "Gestern";
-  if (i === 1) return "Morgen";
+function getLabel(i,date){
+  if(i===0) return "Heute";
+  if(i===-1) return "Gestern";
+  if(i===1) return "Morgen";
 
-  return date.toLocaleDateString("de-DE", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short"
-  });
+  return date.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"short"});
 }
 
 /* =======================
    START
 ======================= */
-renderZeitstrahl();
+function renderAll(){
+  renderZeitstrahl();
+}
+renderAll();
 
 </script>
 
