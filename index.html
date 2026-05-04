@@ -13,6 +13,7 @@ h1 { text-align: center; }
   gap: 12px;
   overflow-x: auto;
   padding: 20px;
+  scroll-behavior: smooth;
 }
 
 .zeitItem {
@@ -32,9 +33,7 @@ h1 { text-align: center; }
 .missed { background: #ffd6d6; border-color: red; }
 .future { background: #eee; }
 
-/* =======================
-   📊 PROGRESS BAR
-======================= */
+/* Progress */
 .progressContainer {
   width: 100%;
   height: 10px;
@@ -51,9 +50,7 @@ h1 { text-align: center; }
   transition: width 0.3s;
 }
 
-/* =======================
-   POPUPS
-======================= */
+/* Popups */
 #jogOverlay, #workoutOverlay, #overlay {
   position: fixed;
   top: 0;
@@ -169,11 +166,10 @@ button {
   </div>
 </div>
 
-<!-- 🏋️ Calisthenics -->
+<!-- Calisthenics -->
 <div id="workoutOverlay">
   <div class="popupBox">
 
-    <!-- 📊 Fortschritt -->
     <div class="progressContainer">
       <div id="progressBar" class="progressBar"></div>
     </div>
@@ -186,9 +182,6 @@ button {
 
 <script>
 
-/* =======================
-   DATEN
-======================= */
 const STORAGE_KEY = "trainingData";
 let trainingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
@@ -203,9 +196,7 @@ function getEntry(key) {
   return trainingData.find(e => e.date === key);
 }
 
-/* =======================
-   TRAININGSPLAN
-======================= */
+/* Trainingsplan */
 const calisthenicsPlan = [
   { name: "Klimmzüge", reps: "3x" },
   { name: "Klimmzüge", reps: "3x" },
@@ -228,9 +219,6 @@ const calisthenicsPlan = [
   { name: "Hanging Leg-Raises", reps: "5x" }
 ];
 
-/* =======================
-   TRAININGSTYP
-======================= */
 function getTrainingType(date) {
   const d = date.getDay();
   if (d === 1 || d === 3 || d === 6) return "Calisthenics";
@@ -238,14 +226,14 @@ function getTrainingType(date) {
   if (d === 5) return "Tennis";
 }
 
-/* =======================
-   ZEITSTRAHL
-======================= */
+/* ZEITSTRAHL */
 function renderZeitstrahl() {
 
   const container = document.getElementById("zeitstrahl");
   container.innerHTML = "";
   const today = new Date();
+
+  let todayElement = null;
 
   for (let i = -7; i <= 7; i++) {
 
@@ -276,15 +264,29 @@ function renderZeitstrahl() {
     `;
 
     card.onclick = () => handleClick(d, key, entry, type);
+
     container.appendChild(card);
+
+    /* ⭐ HEUTE SPEICHERN */
+    if (i === 0) {
+      todayElement = card;
+    }
   }
+
+  /* ⭐ NACH DEM RENDERN ZENTRIEREN */
+  setTimeout(() => {
+    if (todayElement) {
+      todayElement.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest"
+      });
+    }
+  }, 100);
 }
 
-/* =======================
-   KLICK
-======================= */
+/* Rest bleibt gleich */
 function handleClick(date, key, entry, type) {
-
   const today = new Date();
   if (date > today) return;
   if (entry) return;
@@ -303,9 +305,6 @@ function handleClick(date, key, entry, type) {
   }
 }
 
-/* =======================
-   JOGGEN
-======================= */
 function confirmJog() {
   saveWorkout(selectedDateKey);
   closeJog();
@@ -315,16 +314,12 @@ function closeJog() {
   document.getElementById("jogOverlay").style.display = "none";
 }
 
-/* =======================
-   🏋️ CALISTHENICS
-======================= */
 function openWorkout() {
   document.getElementById("workoutOverlay").style.display = "flex";
   showExercise();
 }
 
 function showExercise() {
-
   const ex = calisthenicsPlan[activeWorkout.index];
 
   document.getElementById("exerciseTitle").innerText = ex.name;
@@ -339,24 +334,14 @@ function showExercise() {
   }
 }
 
-/* =======================
-   📊 PROGRESS UPDATE
-======================= */
 function updateProgressBar() {
-
   const total = calisthenicsPlan.length;
   const current = activeWorkout.index;
-
   const percent = (current / total) * 100;
-
   document.getElementById("progressBar").style.width = percent + "%";
 }
 
-/* =======================
-   NEXT
-======================= */
 function nextExercise() {
-
   activeWorkout.index++;
 
   if (activeWorkout.index >= calisthenicsPlan.length) {
@@ -367,18 +352,13 @@ function nextExercise() {
   }
 }
 
-/* =======================
-   SAVE
-======================= */
 function saveWorkout(key) {
   trainingData.push({ date: key });
   save();
   renderAll();
 }
 
-/* =======================
-   KALENDER
-======================= */
+/* Kalender bleibt unverändert */
 function openKalender() {
   document.getElementById("overlay").style.display = "flex";
   renderKalender();
@@ -455,7 +435,6 @@ function renderKalender() {
   setTimeout(()=>{ if(todayEl) todayEl.scrollIntoView({block:"center"}); },100);
 }
 
-/* LABEL */
 function getLabel(i,date){
   if(i===0) return "Heute";
   if(i===-1) return "Gestern";
@@ -464,10 +443,10 @@ function getLabel(i,date){
   return date.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"short"});
 }
 
-/* START */
 function renderAll(){
   renderZeitstrahl();
 }
+
 renderAll();
 
 </script>
