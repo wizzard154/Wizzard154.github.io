@@ -36,7 +36,7 @@ h1 { text-align: center; }
 .future { background: #eee; }
 
 /* =======================
-   📆 KALENDER
+   📆 KALENDER (Apple Style)
 ======================= */
 #kalenderButton {
   position: fixed;
@@ -54,26 +54,62 @@ h1 { text-align: center; }
   padding: 10px;
 }
 
+/* Monatscontainer */
+.monat {
+  margin-bottom: 25px;
+}
+
+/* Monatstitel */
+.monat h3 {
+  text-align: center;
+  margin: 10px 0;
+}
+
+/* Wochentage */
+.wochentage {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+/* Tage */
 .tageGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
 }
 
+/* Einzelner Tag */
 .tag {
-  height: 35px;
+  height: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid #ddd;
+  border-radius: 8px;
 
-  /* 👉 Kein Klick mehr möglich */
+  /* 👉 keine Interaktion */
   pointer-events: none;
 }
 
 /* Farben */
-.heute { border: 2px solid red; }
-.erledigt { background: lightgreen; }
-.verpasst { background: lightcoral; }
+.heute {
+  border: 2px solid red;
+  font-weight: bold;
+}
+
+.erledigt {
+  background: #a8e6a3;
+}
+
+.verpasst {
+  background: #f5a3a3;
+}
+
+.leer {
+  background: transparent;
+}
 
 </style>
 </head>
@@ -104,7 +140,7 @@ function getEntry(dateKey) {
 }
 
 /* =======================
-   📈 SCHWIERIGKEIT
+   📈 LEVEL
 ======================= */
 function getDifficulty() {
   const count = trainingData.length;
@@ -114,7 +150,7 @@ function getDifficulty() {
 }
 
 /* =======================
-   🏋️ TRAINING (nur Zeitstrahl!)
+   🏋️ TRAINING
 ======================= */
 function toggleTraining(dateKey) {
 
@@ -164,7 +200,6 @@ function renderZeitstrahl() {
       <div>${entry ? "✔️ erledigt" : "Training"}</div>
     `;
 
-    // 👉 EINZIGE Stelle zum Eintragen!
     card.onclick = () => toggleTraining(key);
 
     container.appendChild(card);
@@ -178,7 +213,7 @@ function renderZeitstrahl() {
 }
 
 /* =======================
-   📆 KALENDER
+   📆 APPLE KALENDER
 ======================= */
 function renderKalender() {
 
@@ -186,12 +221,15 @@ function renderKalender() {
   kalender.innerHTML = "";
 
   const today = new Date();
-  let todayElement = null; // 👉 merken wo "heute" ist
+  let todayElement = null;
+
+  const weekdays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
   for (let y = 2026; y <= 2030; y++) {
     for (let m = 0; m < 12; m++) {
 
       const month = document.createElement("div");
+      month.className = "monat";
 
       const title = document.createElement("h3");
       title.innerText = new Date(y, m).toLocaleString("de-DE", {
@@ -199,8 +237,29 @@ function renderKalender() {
         year: "numeric"
       });
 
+      // 👉 Wochentage (Apple Style)
+      const header = document.createElement("div");
+      header.className = "wochentage";
+
+      weekdays.forEach(day => {
+        const el = document.createElement("div");
+        el.innerText = day;
+        header.appendChild(el);
+      });
+
       const grid = document.createElement("div");
       grid.className = "tageGrid";
+
+      // 👉 Startposition berechnen (Montag = 0)
+      let firstDay = new Date(y, m, 1).getDay();
+      firstDay = firstDay === 0 ? 6 : firstDay - 1;
+
+      // 👉 LEERE FELDER (wichtig für Apple Look)
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        empty.className = "tag leer";
+        grid.appendChild(empty);
+      }
 
       const days = new Date(y, m + 1, 0).getDate();
 
@@ -216,31 +275,28 @@ function renderKalender() {
 
         if (key === today.toDateString()) {
           el.classList.add("heute");
-
-          // 👉 HIER speichern wir das heutige Element
           todayElement = el;
         }
 
         if (entry) el.classList.add("erledigt");
         if (date < today && !entry) el.classList.add("verpasst");
 
-        // ❌ KEIN onclick mehr!
-
         grid.appendChild(el);
       }
 
       month.appendChild(title);
+      month.appendChild(header); // 👉 Wochentage oben
       month.appendChild(grid);
+
       kalender.appendChild(month);
     }
   }
 
-  // 👉 NACH DEM RENDERN: Scroll zu heute
+  // 👉 Scroll zu heute
   setTimeout(() => {
     if (todayElement) {
       todayElement.scrollIntoView({
-        behavior: "auto",
-        block: "center" // 👉 vertikal mittig
+        block: "center"
       });
     }
   }, 100);
@@ -257,8 +313,6 @@ function toggleKalender() {
     el.style.display = "none";
   } else {
     el.style.display = "block";
-
-    // 👉 WICHTIG: neu rendern beim Öffnen
     renderKalender();
   }
 }
@@ -279,7 +333,7 @@ function getLabel(i, date) {
 }
 
 /* =======================
-   🔄 RENDER
+   🔄 START
 ======================= */
 function renderAll() {
   renderZeitstrahl();
