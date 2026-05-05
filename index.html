@@ -205,6 +205,9 @@
       border-radius: 10px;
       cursor: pointer;
     }
+    
+    .cancelButton {background: #ccc; color: black;}
+      
   </style>
 </head>
 
@@ -230,15 +233,17 @@
       <h3>🏃 Joggen</h3>
       <p>Training beendet?</p>
       <button onclick="confirmJog()">Workout beenden</button>
+      <button class="cancelButton" onclick="closeJog()">Abbrechen</button>
     </div>
   </div>
 
   <!-- ===== TENNIS POPUP ===== -->
-  <div id="tennisOverlay" class="overlay" onclick="closeJog()">
+  <div id="tennisOverlay" class="overlay" onclick="closeTennis()">
     <div class="popupBox" onclick="event.stopPropagation()">
       <h3>🎾 Tennis</h3>
       <p>Training beendet?</p>
       <button onclick="confirmTennis()">Workout beenden</button>
+      <button class="cancelButton" onclick="closeTennis()">Abbrechen</button>
     </div>
   </div>
 
@@ -251,6 +256,7 @@
       <h3 id="exerciseTitle"></h3>
       <p id="exerciseInfo"></p>
       <button id="workoutBtn" onclick="nextExercise()">Weiter</button>
+      <button class="cancelButton" onclick="closeWorkout()">Workout abbrechen</button>
     </div>
   </div>
 
@@ -418,9 +424,7 @@
     }
 
     // ===== JOGGEN POPUP =====
-    function confirmJog() {
-      saveWorkout(selectedDateKey);
-      closeJog();
+    function confirmJog() {saveWorkout(selectedDateKey);closeJog();
     }
 
     function closeJog() {
@@ -428,9 +432,7 @@
     }
 
     // ===== TENNIS POPUP =====
-    function confirmTennis() {
-      saveWorkout(selectedDateKey);
-      closeTennis();
+    function confirmTennis() {saveWorkout(selectedDateKey); closeTennis();
     }
 
     function closeTennis() {
@@ -471,6 +473,11 @@
       save();
       renderAll();
     }
+
+    function closeWorkout() {
+      if(!confirm("Workout abbrechen?")) return;
+      activeWorkout=null;
+      workoutOverlay.style.display="none";
 
     // ===== KALENDER =====
     function openKalender() {
