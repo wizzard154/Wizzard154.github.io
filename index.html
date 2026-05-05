@@ -8,6 +8,7 @@
 body { font-family: Arial; margin: 0; }
 h1 { text-align: center; }
 
+/* Zeitstrahl */
 #zeitstrahl {
   display: flex;
   gap: 12px;
@@ -33,108 +34,17 @@ h1 { text-align: center; }
 .missed { background: #ffd6d6; border-color: red; }
 .future { background: #eee; }
 
-/* Progress */
-.progressContainer {
-  width: 100%;
-  height: 10px;
-  background: #ddd;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-
-.progressBar {
-  height: 100%;
-  width: 0%;
-  background: #4CAF50;
-  transition: width 0.3s;
-}
-
-/* Popups */
-#jogOverlay, #tennisOverlay, #workoutOverlay, #overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-#overlay {
-  background: rgba(0,0,0,0.5);
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-#jogOverlay, #tennisOverlay, #workoutOverlay {
-  background: rgba(0,0,0,0.6);
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-.popupBox {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  width: 80%;
-  max-width: 320px;
-  text-align: center;
-}
-
-/* Kalender */
-#kalenderBox {
-  background: white;
-  width: 90%;
-  max-width: 500px;
-  height: 70%;
-  overflow-y: scroll;
-  border-radius: 15px;
-  padding: 15px;
-}
-
-.monat { margin-bottom: 25px; }
-.monat h3 { text-align: center; }
-
-.wochentage {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  text-align: center;
-  font-weight: bold;
-}
-
-.tageGrid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-}
-
-.tag {
-  height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 8px;
-  pointer-events: none;
-}
-
-.heute { border: 2px solid red; }
-.erledigt { background: #a8e6a3; }
-.verpasst { background: #f5a3a3; }
-.leer { background: transparent; }
-
-button {
-  margin-top: 15px;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
+/* Buttons */
+#planButton {
+  display: block;
+  margin: 10px auto;
+  padding: 10px 20px;
+  border-radius: 12px;
   background: #4CAF50;
   color: white;
-  font-size: 16px;
-  cursor: pointer;
+  border: none;
 }
 
-/* Buttons */
 #kalenderButton {
   position: fixed;
   top: 10px;
@@ -147,11 +57,91 @@ button {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: #ff4d4d;
+  background: red;
   color: white;
-  padding: 12px 16px;
+  padding: 12px;
   border-radius: 12px;
-  font-size: 14px;
+}
+
+/* Popup allgemein */
+.overlay {
+  position: fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.6);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.popupBox {
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  width:80%;
+  max-width:350px;
+  text-align:center;
+}
+
+/* Progress */
+.progressContainer {
+  width:100%;
+  height:10px;
+  background:#ddd;
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:10px;
+}
+
+.progressBar {
+  height:100%;
+  width:0%;
+  background:#4CAF50;
+}
+
+/* Kalender */
+#kalenderBox {
+  background:white;
+  width:90%;
+  max-width:500px;
+  height:70%;
+  overflow-y:scroll;
+  border-radius:15px;
+  padding:15px;
+}
+
+.wochentage, .tageGrid {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+}
+
+.tag {
+  height:40px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  pointer-events:none;
+}
+
+.heute { border:2px solid red; }
+.erledigt { background:#a8e6a3; }
+.verpasst { background:#f5a3a3; }
+
+/* Plan */
+#planBox {
+  background:white;
+  width:90%;
+  max-width:400px;
+  max-height:80%;
+  overflow-y:auto;
+  border-radius:15px;
+  padding:15px;
+}
+
+.planItem {
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:8px;
 }
 </style>
 </head>
@@ -162,16 +152,18 @@ button {
 
 <div id="zeitstrahl"></div>
 
+<button id="planButton" onclick="openPlan()">Trainingsplan</button>
+
 <div id="kalenderButton" onclick="openKalender()">📅</div>
 <button id="resetButton" onclick="resetData()">Reset</button>
 
 <!-- Kalender -->
-<div id="overlay" onclick="closeKalender()">
+<div id="kalenderOverlay" class="overlay" onclick="closeKalender()">
   <div id="kalenderBox" onclick="event.stopPropagation()"></div>
 </div>
 
 <!-- Joggen -->
-<div id="jogOverlay" onclick="closeJog()">
+<div id="jogOverlay" class="overlay" onclick="closeJog()">
   <div class="popupBox" onclick="event.stopPropagation()">
     <h3>Joggen</h3>
     <p>Training beendet?</p>
@@ -179,8 +171,8 @@ button {
   </div>
 </div>
 
-<!-- 🎾 Tennis -->
-<div id="tennisOverlay" onclick="closeTennis()">
+<!-- Tennis -->
+<div id="tennisOverlay" class="overlay" onclick="closeTennis()">
   <div class="popupBox" onclick="event.stopPropagation()">
     <h3>Tennis</h3>
     <p>Training beendet?</p>
@@ -188,190 +180,222 @@ button {
   </div>
 </div>
 
-<!-- Calisthenics -->
-<div id="workoutOverlay">
+<!-- Workout -->
+<div id="workoutOverlay" class="overlay">
   <div class="popupBox">
-
     <div class="progressContainer">
       <div id="progressBar" class="progressBar"></div>
     </div>
-
     <h3 id="exerciseTitle"></h3>
     <p id="exerciseInfo"></p>
-    <button id="workoutBtn" onclick="nextExercise()">Übung geschafft</button>
+    <button id="workoutBtn" onclick="nextExercise()">Weiter</button>
+  </div>
+</div>
+
+<!-- Plan -->
+<div id="planOverlay" class="overlay" onclick="closePlan()">
+  <div id="planBox" onclick="event.stopPropagation()">
+    <h3>Trainingsplan</h3>
+    <div id="planList"></div>
+    <button onclick="savePlan()">Speichern</button>
   </div>
 </div>
 
 <script>
 
-const STORAGE_KEY = "trainingData";
-let trainingData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+const STORAGE_KEY="trainingData";
+const PLAN_KEY="plan";
 
-let selectedDateKey = null;
-let activeWorkout = null;
+/* Daten */
+let trainingData=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
 
-function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(trainingData));
-}
+let calisthenicsPlan=JSON.parse(localStorage.getItem(PLAN_KEY))||[
+  {name:"Klimmzüge",reps:"3x"},
+  {name:"Klimmzüge",reps:"3x"},
+  {name:"Klimmzüge",reps:"3x"},
+  {name:"Dips",reps:"3x"},
+  {name:"Dips",reps:"3x"},
+  {name:"Dips",reps:"3x"},
+  {name:"Rudern",reps:"7x"},
+  {name:"Rudern",reps:"7x"},
+  {name:"Rudern",reps:"7x"},
+  {name:"Liegestütze",reps:"5x"},
+  {name:"Liegestütze",reps:"5x"},
+  {name:"Liegestütze",reps:"5x"},
+  {name:"Hanging Leg-Raises",reps:"5x"},
+  {name:"Hanging Leg-Raises",reps:"5x"},
+  {name:"Hanging Leg-Raises",reps:"5x"}
+];
 
-function getEntry(key) {
-  return trainingData.find(e => e.date === key);
-}
+let selectedDateKey=null;
+let activeWorkout=null;
 
-/* RESET */
-function resetData() {
-  if (!confirm("Alle Trainingsdaten löschen?")) return;
-  localStorage.removeItem(STORAGE_KEY);
-  trainingData = [];
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(trainingData));}
+
+/* Reset */
+function resetData(){
+  if(!confirm("Alles löschen?"))return;
+  localStorage.clear();
+  trainingData=[];
   renderAll();
 }
 
-/* PLAN */
-const calisthenicsPlan = [ /* unverändert */ ];
-
 /* Trainingstyp */
-function getTrainingType(date) {
-  const d = date.getDay();
-  if (d === 1 || d === 3 || d === 6) return "Calisthenics";
-  if (d === 2 || d === 4 || d === 0) return "Joggen";
-  if (d === 5) return "Tennis";
+function getType(d){
+  const day=d.getDay();
+  if([1,3,6].includes(day))return "Calisthenics";
+  if([2,4,0].includes(day))return "Joggen";
+  return "Tennis";
 }
 
-/* ZEITSTRAHL */
-function renderZeitstrahl() {
-  const container = document.getElementById("zeitstrahl");
-  container.innerHTML = "";
-  const today = new Date();
+/* Zeitstrahl */
+function renderZeitstrahl(){
+  const c=document.getElementById("zeitstrahl");
+  c.innerHTML="";
+  const today=new Date();
+  let todayEl=null;
 
-  let todayElement = null;
+  for(let i=-7;i<=7;i++){
+    const d=new Date();
+    d.setDate(today.getDate()+i);
+    const key=d.toDateString();
+    const entry=trainingData.find(e=>e.date===key);
 
-  for (let i = -7; i <= 7; i++) {
-    const d = new Date();
-    d.setDate(today.getDate() + i);
+    const div=document.createElement("div");
+    div.className="zeitItem";
 
-    const key = d.toDateString();
-    const entry = getEntry(key);
+    let status="",cls="";
+    if(entry){status="✔️ erledigt";cls="done";}
+    else if(d<today){status="❌ verpasst";cls="missed";}
+    else{status="⏳ offen";cls="future";}
 
-    const card = document.createElement("div");
-    card.className = "zeitItem";
+    div.classList.add(cls);
 
-    let status = "";
-    let cls = "";
+    const type=getType(d);
 
-    if (entry) { status = "✔️ erledigt"; cls = "done"; }
-    else if (d < today) { status = "❌ verpasst"; cls = "missed"; }
-    else { status = "⏳ offen"; cls = "future"; }
+    div.innerHTML=`<div>${d.toLocaleDateString()}</div>
+                   <div>${type}</div>
+                   <div>${status}</div>`;
 
-    card.classList.add(cls);
+    div.onclick=()=>handleClick(d,key,entry,type);
+    c.appendChild(div);
 
-    const type = getTrainingType(d);
-
-    card.innerHTML = `
-      <div><b>${getLabel(i,d)}</b></div>
-      <div>🏋️ ${type}</div>
-      <div>${status}</div>
-    `;
-
-    card.onclick = () => handleClick(d, key, entry, type);
-    container.appendChild(card);
-
-    if (i === 0) todayElement = card;
+    if(i===0)todayEl=div;
   }
 
-  setTimeout(() => {
-    if (todayElement) {
-      todayElement.scrollIntoView({ behavior: "smooth", inline: "center" });
-    }
-  }, 100);
+  setTimeout(()=>{if(todayEl)todayEl.scrollIntoView({inline:"center"});},100);
 }
 
 /* Klick */
-function handleClick(date, key, entry, type) {
-  const today = new Date();
-  if (date > today) return;
-  if (entry) return;
+function handleClick(d,key,entry,type){
+  if(d>new Date()||entry)return;
+  selectedDateKey=key;
 
-  selectedDateKey = key;
-
-  if (type === "Joggen") {
-    document.getElementById("jogOverlay").style.display = "flex";
-  }
-  else if (type === "Tennis") {
-    document.getElementById("tennisOverlay").style.display = "flex";
-  }
-  else if (type === "Calisthenics") {
-    activeWorkout = { index: 0, dateKey: key };
-    openWorkout();
-  }
-}
-
-/* Joggen */
-function confirmJog() {
-  saveWorkout(selectedDateKey);
-  closeJog();
-}
-function closeJog() {
-  document.getElementById("jogOverlay").style.display = "none";
-}
-
-/* 🎾 Tennis */
-function confirmTennis() {
-  saveWorkout(selectedDateKey);
-  closeTennis();
-}
-function closeTennis() {
-  document.getElementById("tennisOverlay").style.display = "none";
-}
-
-/* Rest bleibt gleich (Workout etc.) */
-function openWorkout() {
-  document.getElementById("workoutOverlay").style.display = "flex";
-  showExercise();
-}
-
-function showExercise() {
-  const ex = calisthenicsPlan[activeWorkout.index];
-  document.getElementById("exerciseTitle").innerText = ex.name;
-  document.getElementById("exerciseInfo").innerText = ex.reps;
-  updateProgressBar();
-
-  if (activeWorkout.index === calisthenicsPlan.length - 1) {
-    document.getElementById("workoutBtn").innerText = "Workout beenden";
-  }
-}
-
-function updateProgressBar() {
-  const percent = (activeWorkout.index / calisthenicsPlan.length) * 100;
-  document.getElementById("progressBar").style.width = percent + "%";
-}
-
-function nextExercise() {
-  activeWorkout.index++;
-
-  if (activeWorkout.index >= calisthenicsPlan.length) {
-    saveWorkout(activeWorkout.dateKey);
-    document.getElementById("workoutOverlay").style.display = "none";
-  } else {
+  if(type==="Joggen")jogOverlay.style.display="flex";
+  else if(type==="Tennis")tennisOverlay.style.display="flex";
+  else{
+    activeWorkout={index:0,dateKey:key};
+    workoutOverlay.style.display="flex";
     showExercise();
   }
 }
 
-function saveWorkout(key) {
-  trainingData.push({ date: key });
+/* Joggen */
+function confirmJog(){saveWorkout(selectedDateKey);closeJog();}
+function closeJog(){jogOverlay.style.display="none";}
+
+/* Tennis */
+function confirmTennis(){saveWorkout(selectedDateKey);closeTennis();}
+function closeTennis(){tennisOverlay.style.display="none";}
+
+/* Workout */
+function showExercise(){
+  const ex=calisthenicsPlan[activeWorkout.index];
+  exerciseTitle.innerText=ex.name;
+  exerciseInfo.innerText=ex.reps;
+
+  progressBar.style.width=(activeWorkout.index/calisthenicsPlan.length*100)+"%";
+
+  if(activeWorkout.index===calisthenicsPlan.length-1)
+    workoutBtn.innerText="Workout beenden";
+}
+
+function nextExercise(){
+  activeWorkout.index++;
+  if(activeWorkout.index>=calisthenicsPlan.length){
+    saveWorkout(activeWorkout.dateKey);
+    workoutOverlay.style.display="none";
+  } else showExercise();
+}
+
+function saveWorkout(key){
+  trainingData.push({date:key});
   save();
   renderAll();
 }
 
-function getLabel(i,date){
-  if(i===0) return "Heute";
-  if(i===-1) return "Gestern";
-  if(i===1) return "Morgen";
-  return date.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"short"});
+/* Kalender */
+function openKalender(){
+  kalenderOverlay.style.display="flex";
+  renderKalender();
+}
+function closeKalender(){kalenderOverlay.style.display="none";}
+
+function renderKalender(){
+  const box=document.getElementById("kalenderBox");
+  box.innerHTML="";
+  const today=new Date();
+
+  for(let m=0;m<12;m++){
+    const month=document.createElement("div");
+    const grid=document.createElement("div");
+    grid.className="tageGrid";
+
+    const days=new Date(2026,m+1,0).getDate();
+
+    for(let d=1;d<=days;d++){
+      const el=document.createElement("div");
+      el.className="tag";
+      const date=new Date(2026,m,d);
+      const key=date.toDateString();
+      const entry=trainingData.find(e=>e.date===key);
+
+      if(key===today.toDateString())el.classList.add("heute");
+      if(entry)el.classList.add("erledigt");
+      if(date<today&&!entry)el.classList.add("verpasst");
+
+      el.innerText=d;
+      grid.appendChild(el);
+    }
+
+    month.appendChild(grid);
+    box.appendChild(month);
+  }
 }
 
-function renderAll(){
-  renderZeitstrahl();
+/* Plan */
+function openPlan(){planOverlay.style.display="flex";renderPlan();}
+function closePlan(){planOverlay.style.display="none";}
+
+function renderPlan(){
+  const list=document.getElementById("planList");
+  list.innerHTML="";
+
+  calisthenicsPlan.forEach((ex,i)=>{
+    const row=document.createElement("div");
+    row.className="planItem";
+    row.innerHTML=`<span>${ex.name}</span>
+                   <input value="${ex.reps}" onchange="calisthenicsPlan[${i}].reps=this.value">`;
+    list.appendChild(row);
+  });
 }
+
+function savePlan(){
+  localStorage.setItem(PLAN_KEY,JSON.stringify(calisthenicsPlan));
+  closePlan();
+}
+
+function renderAll(){renderZeitstrahl();}
 
 renderAll();
 
