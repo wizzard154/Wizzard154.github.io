@@ -271,6 +271,43 @@
     const STORAGE_KEY = "trainingData";   // Key für erledigte Trainings
     const PLAN_KEY = "plan";              // Key für den Übungsplan
     const COUNT_KEY = "workoutCount";
+    const progressionChains = {
+  "Klimmzüge": [
+    "Klimmzüge",
+    "Pull-Ups",
+    "High Pulls",
+    "Muscle Ups"
+  ],
+
+  "Liegestütze": [
+    "Liegestütze",
+    "Ring Push-Ups",
+    "Bulgarian Push-Ups",
+    "One Arm Push-Ups
+  ],
+
+  [
+  "Dips",
+  "Straight Bar Dips",
+  "Ring Dips",
+  "Deep Ring Dips"
+  ],  
+      
+  [
+  "Rudern",
+  "Feet Elevated Rows",
+  "Bulgarisches Rudern",
+  "Front Lever Rows (tuck)"
+  ],
+      
+  [
+  "Hanging Leg-Raises",
+  "Full Hanging Leg-Raises",
+  "Dragonflag Negatives",
+  "Dragonflag Pulls"
+  ]
+  
+};
 
     // ===== DATEN LADEN =====
     // Lädt gespeicherte Trainingsdaten aus localStorage (oder leeres Array)
@@ -480,12 +517,12 @@
       }
     }
 
-    function cancelWorkout() {
-  if (!confirm("Workout wirklich abbrechen?")) return;
+  function cancelWorkout() {
+    if (!confirm("Workout wirklich abbrechen?")) return;
 
-  activeWorkout = null;
-  document.getElementById("workoutOverlay").style.display = "none";
-}
+    activeWorkout = null;
+    document.getElementById("workoutOverlay").style.display = "none";
+  }
     
     // Speichert ein abgeschlossenes Training
     function saveWorkout(key) {
@@ -504,23 +541,51 @@
       renderAll();
     }
 
-  function increaseIntensity() {
-  calisthenicsPlan.forEach(ex => {
-    // Zahl aus "3x" extrahieren
-    let num = parseInt(ex.reps);
+  function getNextExercise(name) {
+    for (let key in progressionChains) {
+      const chain = progressionChains[key];
+      const index = chain.indexOf(name);
 
-    if (!isNaN(num)) {
-      num++;
-      ex.reps = num + "x";
+      if (index !== -1 && index < chain.length - 1) {
+        return chain[index + 1];
+      }
+    }
+    return null;
+  }
+
+ function increaseIntensity() {
+
+  calisthenicsPlan.forEach(ex => {
+
+    let reps = parseInt(ex.reps);
+
+    if (isNaN(reps)) return;
+
+    // 👉 1. Fall: unter 15 → einfach +1
+    if (reps < 15) {
+      reps++;
+      ex.reps = reps + "x";
+    }
+
+    // 👉 2. Fall: bei 15 → Progression wechseln
+    else {
+      const next = getNextExercise(ex.name);
+
+      if (next) {
+        ex.name = next;
+        ex.reps = "3x";
+      } else {
+        // kein nächster Schritt → bleibt bei 15+
+        ex.reps = "15x";
+      }
     }
   });
 
-  // speichern
   localStorage.setItem(PLAN_KEY, JSON.stringify(calisthenicsPlan));
 
-  alert("🔥 Trainingsintensität erhöht!");
+  alert("🔥 Progression aktualisiert!");
 }
-
+    
     // ===== KALENDER =====
     function openKalender() {
       document.getElementById("kalenderOverlay").style.display = "flex";
