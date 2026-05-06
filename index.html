@@ -66,12 +66,14 @@ h1 { text-align: center; }
   align-items: center;
 }
 
-#jogOverlay, #workoutOverlay {
+#jogOverlay, #workoutOverlay, #tennisOverlay {
   background: rgba(0,0,0,0.6);
   display: none;
   justify-content: center;
   align-items: center;
 }
+
+
 
 .popupBox {
   background: white;
@@ -179,13 +181,23 @@ button {
   <div id="kalenderBox" onclick="event.stopPropagation()"></div>
 </div>
 
+<!-- Tennis -->
+<div id="tennisOverlay" onclick="closeTennis()">
+  <div class="popupBox" onclick="event.stopPropagation()">
+    <h3>Tennis</h3>
+    <p>Training beendet?</p>
+    <button onclick="confirmTennis()">Workout abschließen</button>
+    <button class="cancelButton" onclick="cancelTennis()">Abbrechen</button>
+  </div>
+</div>
+
 <!-- Joggen -->
-<div id="jogOverlay">
+<div id="jogOverlay" onclick="closeJog()">
   <div class="popupBox" onclick="event.stopPropagation()">
     <h3>Joggen</h3>
     <p>Training beendet?</p>
     <button onclick="confirmJog()">Workout abschließen</button>
-    <button class="cancelButton" onclick="closeJog()">Abbrechen</button>
+    <button class="cancelButton" onclick="cancelJog()">Abbrechen</button>
   </div>
 </div>
 
@@ -200,7 +212,7 @@ button {
     <h3 id="exerciseTitle"></h3>
     <p id="exerciseInfo"></p>
     <button id="workoutBtn" onclick="nextExercise()">Übung geschafft</button>
-    <button class="cancelButton" onclick="closeWorkout()">Abbrechen</button>
+    <button class="cancelButton" onclick="cancelWorkout()">Abbrechen</button>
   </div>
 </div>
 
@@ -350,12 +362,15 @@ function closeJog() {
   document.getElementById("jogOverlay").style.display = "none";
 }
 
+function cancelJog() {
+  document.getElementById("jogOverlay").style.display = "none";
+
 function openWorkout() {
   document.getElementById("workoutOverlay").style.display = "flex";
   showExercise();
 }
 
-function closeWorkout() {
+function cancelWorkout() {
     document.getElementById("workoutOverlay").style.display = "none";
 }
 
