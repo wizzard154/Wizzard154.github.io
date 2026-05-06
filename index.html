@@ -488,11 +488,13 @@
 }
     
     // Speichert ein abgeschlossenes Training
-    function saveWorkout(key) {
+    function saveWorkout(key, type) {
       trainingData.push({ date: key });
-      workoutCount++;
-      localStorage.setItem(COUNT_KEY, workoutCount);
-      if (workoutCount % 6 === 0) { increaseIntensity();}
+      if (type === "Calesthenics") {
+        workoutCount++;
+        localStorage.setItem(COUNT_KEY, workoutCount);
+        if (workoutCount % 6 === 0) { increaseIntensity();}
+      }
       save();
       renderAll();
     }
