@@ -373,8 +373,7 @@
 
         // Inhalt der Karte
         div.innerHTML = `
-          <div style="font-weight: bold;">${date.toLocaleDateString("de-DE", { weekday: "short" })}</div>
-          <div>${date.toLocaleDateString("de-DE")}</div>
+          <div><b>${getLabel(i,d)}</b></div>
           <div>${type}</div>
           <div>${status}</div>
         `;
@@ -417,6 +416,16 @@
       }
     }
 
+    function getLabel(i,date){
+      if(i===-2) return "Vorgestern";
+      if(i===-1) return "Gestern";
+      if(i===0) return "Heute";
+      if(i===1) return "Morgen";
+      if(i===2) return "Übermorgen";
+
+      return date.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"short"});
+    }
+    
     // ===== JOGGEN POPUP =====
     function confirmJog() {
       saveWorkout(selectedDateKey);
