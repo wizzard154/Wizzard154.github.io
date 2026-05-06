@@ -225,20 +225,22 @@
   </div>
 
   <!-- ===== JOGGEN POPUP ===== -->
-  <div id="jogOverlay" class="overlay" onclick="closeJog()">
+  <div id="jogOverlay" class="overlay">
     <div class="popupBox" onclick="event.stopPropagation()">
       <h3>🏃 Joggen</h3>
       <p>Training beendet?</p>
-      <button onclick="confirmJog()">Workout beenden</button>
+      <button onclick="confirmJog()">Workout abschließen</button>
+      <button onclick="closeJog()">Abbrechen</button>
     </div>
   </div>
 
   <!-- ===== TENNIS POPUP ===== -->
-  <div id="tennisOverlay" class="overlay" onclick="closeJog()">
+  <div id="tennisOverlay" class="overlay">
     <div class="popupBox" onclick="event.stopPropagation()">
       <h3>🎾 Tennis</h3>
       <p>Training beendet?</p>
       <button onclick="confirmTennis()">Workout beenden</button>
+      <button onclick="closeTennis()">Abbrechen</button>
     </div>
   </div>
 
@@ -251,6 +253,7 @@
       <h3 id="exerciseTitle"></h3>
       <p id="exerciseInfo"></p>
       <button id="workoutBtn" onclick="nextExercise()">Weiter</button>
+      <button onclick="cancelWorkout()">Abbrechen</button>
     </div>
   </div>
 
@@ -474,6 +477,13 @@
       }
     }
 
+    function cancelWorkout() {
+  if (!confirm("Workout wirklich abbrechen?")) return;
+
+  activeWorkout = null;
+  document.getElementById("workoutOverlay").style.display = "none";
+}
+    
     // Speichert ein abgeschlossenes Training
     function saveWorkout(key) {
       trainingData.push({ date: key });
