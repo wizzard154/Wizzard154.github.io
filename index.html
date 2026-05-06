@@ -270,6 +270,7 @@
     // ===== KONSTANTEN =====
     const STORAGE_KEY = "trainingData";   // Key für erledigte Trainings
     const PLAN_KEY = "plan";              // Key für den Übungsplan
+    const COUNT_KEY = "workoutCount";
 
     // ===== DATEN LADEN =====
     // Lädt gespeicherte Trainingsdaten aus localStorage (oder leeres Array)
@@ -293,6 +294,8 @@
       { name: "Hanging Leg-Raises", reps: "5x" },
       { name: "Hanging Leg-Raises", reps: "5x" }
     ];
+
+    let workoutCount = parseInt(localStorage.getItem(COUNT_KEY)) || 0;
 
     // ===== ZUSTANDSVARIABLEN =====
     let selectedDateKey = null;   // Aktuell ausgewähltes Datum
@@ -487,9 +490,29 @@
     // Speichert ein abgeschlossenes Training
     function saveWorkout(key) {
       trainingData.push({ date: key });
+      workoutCount++;
+      localStorage.setItem(COUNT_KEY, workoutCount);
+      if (workoutCount % 6 === 0) { increaseIntensity();}
       save();
       renderAll();
     }
+
+  function increaseIntensity() {
+  calisthenicsPlan.forEach(ex => {
+    // Zahl aus "3x" extrahieren
+    let num = parseInt(ex.reps);
+
+    if (!isNaN(num)) {
+      num++;
+      ex.reps = num + "x";
+    }
+  });
+
+  // speichern
+  localStorage.setItem(PLAN_KEY, JSON.stringify(calisthenicsPlan));
+
+  alert("🔥 Trainingsintensität erhöht!");
+}
 
     // ===== KALENDER =====
     function openKalender() {
