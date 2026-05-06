@@ -39,7 +39,7 @@
       justify-content: space-between;
       text-align: center;
       cursor: pointer;
-      flex-shrink: 0;            /* Verhindert Schrumpfen der Karten */
+      flex-shrink: 0;
     }
 
     /* Farbige Status-Markierungen */
@@ -422,8 +422,7 @@
       if(i===0) return "Heute";
       if(i===1) return "Morgen";
       if(i===2) return "Übermorgen";
-
-      return date.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"short"});
+      return date.toLocaleDateString("de-DE",{weekday:"short" , day:"2-digit" , month:"short"});
     }
     
     // ===== JOGGEN POPUP =====
