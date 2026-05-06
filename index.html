@@ -154,6 +154,12 @@ button {
   border-radius: 12px;
   font-size: 14px;
 }
+
+.cancelButton {
+  background: #ccc;
+  color: black;
+}
+
 </style>
 </head>
 
@@ -174,11 +180,12 @@ button {
 </div>
 
 <!-- Joggen -->
-<div id="jogOverlay" onclick="closeJog()">
+<div id="jogOverlay">
   <div class="popupBox" onclick="event.stopPropagation()">
     <h3>Joggen</h3>
     <p>Training beendet?</p>
-    <button onclick="confirmJog()">Workout beenden</button>
+    <button onclick="confirmJog()">Workout abschließen</button>
+    <button class="cancelButton" onclick="closeJog()">Abbrechen</button>
   </div>
 </div>
 
@@ -193,6 +200,7 @@ button {
     <h3 id="exerciseTitle"></h3>
     <p id="exerciseInfo"></p>
     <button id="workoutBtn" onclick="nextExercise()">Übung geschafft</button>
+    <button class="cancelButton" onclick="closeWorkout()">Abbrechen</button>
   </div>
 </div>
 
@@ -321,6 +329,9 @@ function handleClick(date, key, entry, type) {
   if (type === "Joggen") {
     document.getElementById("jogOverlay").style.display = "flex";
   }
+  if (type === "Tennis") {
+    document.getElementById("tennisOverlay").style.display = "flex";
+  }
   else if (type === "Calisthenics") {
     activeWorkout = { index: 0, dateKey: key };
     openWorkout();
@@ -342,6 +353,10 @@ function closeJog() {
 function openWorkout() {
   document.getElementById("workoutOverlay").style.display = "flex";
   showExercise();
+}
+
+function closeWorkout() {
+    document.getElementById("workoutOverlay").style.display = "none";
 }
 
 function showExercise() {
