@@ -205,6 +205,17 @@
       border-radius: 10px;
       cursor: pointer;
     }
+    
+    #statsButton {
+      position: fixed;
+      top: 10px;
+      right: 60px; /* links neben Kalender */
+      font-size: 28px;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
+    
   </style>
 </head>
 
@@ -218,11 +229,22 @@
   <button id="planButton" onclick="openPlan()">Trainingsplan</button>
   <button id="kalenderButton" onclick="openKalender()">📅</button>
   <button id="resetButton" onclick="resetData()">Reset</button>
+  <button id="statsButton" onclick="openStats()">📊</button>
 
   <!-- ===== KALENDER POPUP ===== -->
   <div id="kalenderOverlay" class="overlay" onclick="closeKalender()">
     <div id="kalenderBox" onclick="event.stopPropagation()"></div>
   </div>
+
+<!-- ===== STATS POPUP ==== -->
+  <div id="statsOverlay" class="overlay" onclick="closeStats()">
+  <div class="popupBox" onclick="event.stopPropagation()">
+    <h3>📊 Statistik</h3>
+    <div id="statsContent"></div>
+    <button onclick="closeStats()">Schließen</button>
+  </div>
+</div>    
+
 
   <!-- ===== JOGGEN POPUP ===== -->
   <div id="jogOverlay" class="overlay">
@@ -723,6 +745,31 @@
   calisthenicsPlan[index].reps = num + "x";
 }
 
+    function openStats() {
+  document.getElementById("statsOverlay").style.display = "flex";
+  renderStats();
+}
+
+function closeStats() {
+  document.getElementById("statsOverlay").style.display = "none";
+}
+
+    function renderStats() {
+  let stats = {
+    "Calisthenics": 0,
+    "Joggen": 0,
+    "Tennis": 0
+  };
+
+  trainingData.forEach(entry => {
+    const date = new Date(entry.date);
+    const type = getType(date);
+
+    stats[type]++;
+  });
+
+  const
+    
     // ===== INITIALISIERUNG =====
     function renderAll() {
       renderZeitstrahl();
