@@ -687,8 +687,9 @@
         row.className = "planItem";
         row.innerHTML = `
           <span>${exercise.name}</span>
-          <input value="${exercise.reps}" 
-                 onchange="calisthenicsPlan[${index}].reps = this.value">
+          <input type="number" min="1"
+                  value="${exercise.reps.replace('x','')}" 
+                  oninput="updateReps(${index}, this.value)">
         `;
         list.appendChild(row);
       });
@@ -698,6 +699,16 @@
       localStorage.setItem(PLAN_KEY, JSON.stringify(calisthenicsPlan));
       closePlan();
     }
+
+    function updateReps(index, value) {
+    let num = parseInt(value);
+
+    if (isNaN(num) || num < 1) {
+      num = 1; // fallback
+    }
+  
+  calisthenicsPlan[index].reps = num + "x";
+}
 
     // ===== INITIALISIERUNG =====
     function renderAll() {
