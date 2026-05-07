@@ -754,7 +754,7 @@ function closeStats() {
   document.getElementById("statsOverlay").style.display = "none";
 }
 
-    function renderStats() {
+function renderStats() {
   let stats = {
     "Calisthenics": 0,
     "Joggen": 0,
@@ -764,16 +764,17 @@ function closeStats() {
   trainingData.forEach(entry => {
     const date = new Date(entry.date);
     const type = getType(date);
-
     stats[type]++;
   });
 
-  const
-    
-    // ===== INITIALISIERUNG =====
-    function renderAll() {
-      renderZeitstrahl();
-    }
+  const content = document.getElementById("statsContent");
+
+  content.innerHTML = `
+    <p>💪 Calisthenics: ${stats["Calisthenics"]}</p>
+    <p>🏃 Joggen: ${stats["Joggen"]}</p>
+    <p>🎾 Tennis: ${stats["Tennis"]}</p>
+  `;
+}
 
     // Startet die App
     renderAll();
