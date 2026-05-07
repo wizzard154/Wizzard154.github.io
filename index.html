@@ -596,77 +596,90 @@
       document.getElementById("kalenderOverlay").style.display = "none";
     }
 
-    function renderKalender() {
-      const box = document.getElementById("kalenderBox");
-      box.innerHTML = "";
-      const today = new Date();
-      const currentYear = today.getFullYear();
+   function renderKalender() {
+  const box = document.getElementById("kalenderBox");
+  box.innerHTML = "";
+  const today = new Date();
+  const currentYear = today.getFullYear();
 
-      const monatsnamen = [
-        "Januar", "Februar", "März", "April", "Mai", "Juni",
-        "Juli", "August", "September", "Oktober", "November", "Dezember"
-      ];
+  let todayElement = null; // 👈 merken für Scroll
 
-      // Rendert jeden Monat des aktuellen Jahres
-      for (let m = 0; m < 12; m++) {
-        // Monatsüberschrift
-        const header = document.createElement("div");
-        header.className = "monatsHeader";
-        header.innerText = monatsnamen[m] + " " + currentYear;
-        box.appendChild(header);
+  const monatsnamen = [
+    "Januar", "Februar", "März", "April", "Mai", "Juni",
+    "Juli", "August", "September", "Oktober", "November", "Dezember"
+  ];
 
-        // Wochentage-Header
-        const wochentage = document.createElement("div");
-        wochentage.className = "wochentage";
-        ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].forEach(tag => {
-          const span = document.createElement("span");
-          span.innerText = tag;
-          wochentage.appendChild(span);
-        });
-        box.appendChild(wochentage);
+  for (let m = 0; m < 12; m++) {
+    // ===== Monatsüberschrift =====
+    const header = document.createElement("div");
+    header.className = "monatsHeader";
+    header.innerText = monatsnamen[m] + " " + currentYear;
+    box.appendChild(header);
 
-        // Tage-Grid
-        const grid = document.createElement("div");
-        grid.className = "tageGrid";
+    // ===== Wochentage =====
+    const wochentage = document.createElement("div");
+    wochentage.className = "wochentage";
 
-        // Ermittelt den ersten Tag des Monats
-        const firstDay = new Date(currentYear, m, 1);
-        // Wochentag des 1. (0=So, 1=Mo, ...)
-        let startDay = firstDay.getDay();
-        // Konvertiert zu Mo=0, Di=1, ..., So=6
-        startDay = (startDay === 0) ? 6 : startDay - 1;
+    ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].forEach(tag => {
+      const span = document.createElement("span");
+      span.innerText = tag;
+      wochentage.appendChild(span);
+    });
 
-        // Leere Zellen vor dem 1. des Monats
-        for (let i = 0; i < startDay; i++) {
-          const empty = document.createElement("div");
-          empty.className = "tag leer";
-          grid.appendChild(empty);
-        }
+    box.appendChild(wochentage);
 
-        // Anzahl Tage im Monat
-        const daysInMonth = new Date(currentYear, m + 1, 0).getDate();
+    // ===== Grid =====
+    const grid = document.createElement("div");
+    grid.className = "tageGrid";
 
-        // Rendert jeden Tag
-        for (let d = 1; d <= daysInMonth; d++) {
-          const el = document.createElement("div");
-          el.className = "tag";
+    const firstDay = new Date(currentYear, m, 1);
+    let startDay = firstDay.getDay();
+    startDay = (startDay === 0) ? 6 : startDay - 1;
 
-          const date = new Date(currentYear, m, d);
-          const key = date.toDateString();
-          const entry = trainingData.find(e => e.date === key);
-
-          // Markierungen
-          if (isSameDay(date, today)) el.classList.add("heute");
-          if (entry) el.classList.add("erledigt");
-          else if (isPast(date)) el.classList.add("verpasst");
-
-          el.innerText = d;
-          grid.appendChild(el);
-        }
-
-        box.appendChild(grid);
-      }
+    // Leere Felder am Anfang
+    for (let i = 0; i < startDay; i++) {
+      const empty = document.createElement("div");
+      empty.className = "tag leer";
+      grid.appendChild(empty);
     }
+
+    const daysInMonth = new Date(currentYear, m + 1, 0).getDate();
+
+    // ===== Tage =====
+    for (let d = 1; d <= daysInMonth; d++) {
+      const el = document.createElement("div");
+      el.className = "tag";
+
+      const date = new Date(currentYear, m, d);
+      const key = date.toDateString();
+      const entry = trainingData.find(e => e.date === key);
+
+      // Markierungen
+      if (isSameDay(date, today)) {
+        el.classList.add("heute");
+        todayElement = el; // 👈 speichern
+      }
+
+      if (entry) el.classList.add("erledigt");
+      else if (isPast(date)) el.classList.add("verpasst");
+
+      el.innerText = d;
+      grid.appendChild(el);
+    }
+
+    box.appendChild(grid);
+  }
+
+  // ===== Scroll zum heutigen Tag =====
+  setTimeout(() => {
+    if (todayElement) {
+      todayElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+  }, 100);
+}
 
     // ===== TRAININGSPLAN EDITOR =====
     function openPlan() {
