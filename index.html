@@ -225,21 +225,19 @@
 
 <body>
 
-  <h1>Maltes Trainingsplan</h1>
-
-  <!-- Horizontaler Zeitstrahl mit Trainingstagen -->
-  <div id="zeitstrahl"></div>
-
-  <button id="planButton" onclick="openPlan()">Trainingsplan</button>
-  <button id="resetButton" onclick="resetData()">Reset</button>
-
-  <div id="header">
+   <div id="header">
   <h1>Maltes Trainingsplan</h1>
   <div id="headerButtons">
     <button onclick="openStats()">📊</button>
     <button onclick="openKalender()">📅</button>
   </div>
 </div>
+
+  <!-- Horizontaler Zeitstrahl mit Trainingstagen -->
+  <div id="zeitstrahl"></div>
+
+  <button id="planButton" onclick="openPlan()">Trainingsplan</button>
+  <button id="resetButton" onclick="resetData()">Reset</button>
   
   <!-- ===== KALENDER POPUP ===== -->
   <div id="kalenderOverlay" class="overlay" onclick="closeKalender()">
