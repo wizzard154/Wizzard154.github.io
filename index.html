@@ -60,16 +60,6 @@
       font-size: 16px;
     }
 
-    #kalenderButton {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      font-size: 28px;
-      cursor: pointer;
-      background: none;
-      border: none;
-    }
-
     #resetButton {
       position: fixed;
       bottom: 20px;
@@ -205,17 +195,31 @@
       border-radius: 10px;
       cursor: pointer;
     }
-    
-    #statsButton {
-      position: fixed;
-      top: 10px;
-      right: 60px; /* links neben Kalender */
-      font-size: 28px;
-      cursor: pointer;
-      background: none;
-      border: none;
-    }
-    
+
+    #header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+}
+
+#header h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+#headerButtons {
+  display: flex;
+  gap: 10px;
+}
+
+#headerButtons button {
+  font-size: 22px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+   
   </style>
 </head>
 
@@ -227,10 +231,16 @@
   <div id="zeitstrahl"></div>
 
   <button id="planButton" onclick="openPlan()">Trainingsplan</button>
-  <button id="kalenderButton" onclick="openKalender()">📅</button>
   <button id="resetButton" onclick="resetData()">Reset</button>
-  <button id="statsButton" onclick="openStats()">📊</button>
 
+  <div id="header">
+  <h1>Maltes Trainingsplan</h1>
+  <div id="headerButtons">
+    <button onclick="openStats()">📊</button>
+    <button onclick="openKalender()">📅</button>
+  </div>
+</div>
+  
   <!-- ===== KALENDER POPUP ===== -->
   <div id="kalenderOverlay" class="overlay" onclick="closeKalender()">
     <div id="kalenderBox" onclick="event.stopPropagation()"></div>
