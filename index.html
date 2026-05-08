@@ -806,7 +806,7 @@ function getWeekKey(date) {
   return d.getFullYear() + "-W" + week;
 }
 
-    function calculateStreak() {
+function calculateStreak() {
   let weeks = {};
 
   // Trainings pro Woche zählen
@@ -818,36 +818,49 @@ function getWeekKey(date) {
     weeks[key]++;
   });
 
-  // Nur Wochen mit ≥2 zählen
+  const today = new Date();
+  const currentWeekKey = getWeekKey(today);
+
+  // Prüfen ob aktuelle Woche erfüllt ist
+  const currentWeekCount = weeks[currentWeekKey] || 0;
+
+  // Ende der Woche bestimmen (Sonntag)
+  const endOfWeek = new Date(today);
+  const day = today.getDay();
+  const diff = 7 - (day === 0 ? 7 : day);
+  endOfWeek.setDate(today.getDate() + diff);
+  endOfWeek.setHours(23,59,59,999);
+
+  const weekFinished = today > endOfWeek;
+
+  // ❌ Streak verloren
+  if (weekFinished && currentWeekCount < 2) {
+    return { current: 0, best: getBestStreak(weeks) };
+  }
+
+  // gültige Wochen
   const validWeeks = Object.keys(weeks)
     .filter(k => weeks[k] >= 2)
-    .sort(); // chronologisch
+    .sort();
 
   let currentStreak = 0;
-  let bestStreak = 0;
 
-  for (let i = 0; i < validWeeks.length; i++) {
-    if (i === 0) {
+  // rückwärts zählen (wichtig!)
+  for (let i = validWeeks.length - 1; i >= 0; i--) {
+    if (i === validWeeks.length - 1) {
       currentStreak = 1;
     } else {
-      const prev = validWeeks[i - 1];
-      const curr = validWeeks[i];
-
-      if (isNextWeek(prev, curr)) {
+      if (isNextWeek(validWeeks[i - 1], validWeeks[i])) {
         currentStreak++;
       } else {
-        currentStreak = 1;
+        break;
       }
-    }
-
-    if (currentStreak > bestStreak) {
-      bestStreak = currentStreak;
     }
   }
 
   return {
     current: currentStreak,
-    best: bestStreak
+    best: getBestStreak(weeks)
   };
 }
 
@@ -862,7 +875,29 @@ function getWeekKey(date) {
 
   return false;
 }
-    
+
+    function getBestStreak(weeks) {
+  const validWeeks = Object.keys(weeks)
+    .filter(k => weeks[k] >= 2)
+    .sort();
+
+  let best = 0;
+  let current = 0;
+
+  for (let i = 0; i < validWeeks.length; i++) {
+    if (i === 0) {
+      current = 1;
+    } else if (isNextWeek(validWeeks[i - 1], validWeeks[i])) {
+      current++;
+    } else {
+      current = 1;
+    }
+
+    if (current > best) best = current;
+  }
+
+  return best;
+}
 
     function renderAll() {
   renderZeitstrahl();
