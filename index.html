@@ -53,9 +53,10 @@ window.register = register;
 window.login = login;
 window.logout = logout;
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
 
   if (user) {
+        await loadUserData();
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("zeitstrahl").style.display = "flex";
     document.getElementById("planButton").style.display = "block";
@@ -623,6 +624,7 @@ onAuthStateChanged(auth, (user) => {
 
     trainingData = data.trainingData || [];
     calisthenicsPlan = data.plan || calisthenicsPlan;
+    if (!data.plan) await save();
 
     renderAll();
   }
@@ -1000,7 +1002,7 @@ function getWeekKey(date) {
 }
   
 
-    function getBestStreak(weeks) {
+ async function getBestStreak(weeks) {
   const validWeeks = Object.keys(weeks)
     .filter(k => weeks[k] >= 2)
     .sort();
@@ -1023,17 +1025,28 @@ function getWeekKey(date) {
   return best;
 }
 
-        function register() {
+async function register() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  firebaseAuth.createUserWithEmailAndPassword(auth, email, password)
-    .then(user => {
-      console.log("Registriert:", user.user.email);
-    })
-    .catch(err => alert(err.message));
-}
+  try {
+    const userCredential = await firebaseAuth.createUserWithEmailAndPassword(auth, email, password);
 
+    await firebaseDB.setDoc(
+      firebaseDB.doc(db, "users", userCredential.user.uid),
+      {
+        trainingData: [],
+        plan: calisthenicsPlan
+      }
+    );
+
+    console.log("Registriert:", userCredential.user.email);
+
+  } catch (err) {
+    alert(err.message);
+  }
+}
+        
 function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -1049,6 +1062,7 @@ function login() {
 function logout() {
   firebaseAuth.signOut(auth).then(() => {
     document.getElementById("settingsOverlay").style.display = "none";
+      location.reload()
   });
 }
 
