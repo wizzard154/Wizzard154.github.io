@@ -509,15 +509,16 @@ onAuthStateChanged(auth, (user) => {
     }
 
     // ===== RESET =====
-    function resetData() {
-      if (!confirm("Alle Daten löschen?")) return;
-      trainingData = [];
-      calisthenicsPlan = [];
-      await save();
-      trainingData = [];
-      location.reload();
-      renderAll();
-    }
+    async function resetData() {
+  if (!confirm("Alle Daten löschen?")) return;
+
+  trainingData = [];
+  calisthenicsPlan = [];
+
+  await save();
+
+  location.reload();
+}
 
     // ===== ZEITSTRAHL RENDERN =====
     function renderZeitstrahl() {
@@ -683,7 +684,7 @@ onAuthStateChanged(auth, (user) => {
   }
     
     // Speichert ein abgeschlossenes Training
-    function saveWorkout(key) {
+  async function saveWorkout(key) {
       trainingData.push({ date: key });
 
         const date = new Date(key);
