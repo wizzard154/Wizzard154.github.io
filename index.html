@@ -44,21 +44,23 @@ window.login = login;
 window.logout = logout;
 
 onAuthStateChanged(auth, (user) => {
+
   if (user) {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("zeitstrahl").style.display = "flex";
     document.getElementById("planButton").style.display = "block";
     document.getElementById("resetButton").style.display = "block";
-
-    renderAll();
   } else {
     document.getElementById("loginBox").style.display = "block";
-
-    // 👉 UI verstecken
     document.getElementById("zeitstrahl").style.display = "none";
     document.getElementById("planButton").style.display = "none";
     document.getElementById("resetButton").style.display = "none";
   }
+
+  // 👉 jetzt UI freigeben
+  document.body.style.visibility = "visible";
+
+  renderAll();
 });
             
 </script>
@@ -73,6 +75,7 @@ onAuthStateChanged(auth, (user) => {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
+      visibility: hidden;
     }
 
     h1 {
@@ -1003,7 +1006,9 @@ function login() {
 }
 
 function logout() {
-  firebaseAuth.signOut(auth);
+  firebaseAuth.signOut(auth).then(() => {
+    document.getElementById("settingsOverlay").style.display = "none";
+  });
 }
 
 function openSettings() {
