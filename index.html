@@ -46,11 +46,21 @@ window.logout = logout;
 onAuthStateChanged(auth, (user) => {
   if (user) {
     document.getElementById("loginBox").style.display = "none";
+    document.getElementById("zeitstrahl").style.display = "flex";
+    document.getElementById("planButton").style.display = "block";
+    document.getElementById("resetButton").style.display = "block";
+
     renderAll();
   } else {
     document.getElementById("loginBox").style.display = "block";
+
+    // 👉 UI verstecken
+    document.getElementById("zeitstrahl").style.display = "none";
+    document.getElementById("planButton").style.display = "none";
+    document.getElementById("resetButton").style.display = "none";
   }
 });
+            
 </script>
       
   <meta charset="UTF-8">
@@ -280,8 +290,8 @@ onAuthStateChanged(auth, (user) => {
    <div id="header">
   <h1>Maltes Trainingsplan</h1>
   <div id="headerButtons">
-    <button onclick="openStats()">📊</button>
     <button onclick="openKalender()">📅</button>
+      <button onclick="openSettings()">⚙️</button>
   </div>
 </div>
 
@@ -356,6 +366,20 @@ onAuthStateChanged(auth, (user) => {
       <button onclick="savePlan()">Speichern</button>
     </div>
   </div>
+
+      <!-- ===== SETTINGS MENÜ ===== -->
+<div id="settingsOverlay" class="overlay" onclick="closeSettings()">
+  <div class="popupBox" onclick="event.stopPropagation()">
+    <h3>⚙️ Einstellungen</h3>
+
+    <button onclick="openStats()">📊 Statistik öffnen</button>
+    <button onclick="logout()">🚪 Logout</button>
+
+    <p id="userInfo" style="margin-top:10px; font-size:12px;"></p>
+
+    <button onclick="closeSettings()">Schließen</button>
+  </div>
+</div>
 
   <script>
     // ===== KONSTANTEN =====
@@ -980,6 +1004,18 @@ function login() {
 
 function logout() {
   firebaseAuth.signOut(auth);
+}
+
+function openSettings() {
+  document.getElementById("settingsOverlay").style.display = "flex";
+
+  const user = auth.currentUser;
+  document.getElementById("userInfo").innerText =
+    user ? `Eingeloggt als: ${user.email}` : "Nicht eingeloggt";
+}
+
+function closeSettings() {
+  document.getElementById("settingsOverlay").style.display = "none";
 }
         
 function renderAll() {
