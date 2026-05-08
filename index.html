@@ -12,13 +12,20 @@
       <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { 
-    getAuth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+            
   const firebaseConfig = {
   apiKey: "AIzaSyCwGK0DicEh01tTMm9HxuoKNjyAfUGDYYg",
   authDomain: "trainingsapp-ee8bf.firebaseapp.com",
@@ -30,6 +37,9 @@
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+const db = getFirestore(app);
+window.db = db;
+window.firebaseDB = { doc, getDoc, setDoc };
 
   // GLOBAL verfügbar machen
   window.auth = auth;
@@ -459,9 +469,19 @@ onAuthStateChanged(auth, (user) => {
     // ===== HILFSFUNKTIONEN =====
 
     // Speichert Trainingsdaten in localStorage
-    function save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(trainingData));
-    }
+    async function save() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  await firebaseDB.setDoc(
+    firebaseDB.doc(db, "users", user.uid),
+    {
+      trainingData: trainingData,
+      plan: calisthenicsPlan
+    },
+    { merge: true }
+  );
+}
 
     // Bestimmt den Trainingstyp basierend auf dem Wochentag
     // Mo(1), Mi(3), Sa(6) = Calisthenics
@@ -586,7 +606,25 @@ onAuthStateChanged(auth, (user) => {
       if(i===2) return "Übermorgen";
       return date.toLocaleDateString("de-DE",{weekday:"short" , day:"2-digit" , month:"short"});
     }
-    
+
+        async function loadUserData() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const snap = await firebaseDB.getDoc(
+    firebaseDB.doc(db, "users", user.uid)
+  );
+
+  if (snap.exists()) {
+    const data = snap.data();
+
+    trainingData = data.trainingData || [];
+    calisthenicsPlan = data.plan || calisthenicsPlan;
+
+    renderAll();
+  }
+}
+        
     // ===== JOGGEN POPUP =====
     function confirmJog() {
       saveWorkout(selectedDateKey);
@@ -1028,7 +1066,8 @@ function renderAll() {
 }
     
     // Startet die App
-    renderAll();
+    await loadUserData();
+      renderAll();
   </script>
 
 </body>
