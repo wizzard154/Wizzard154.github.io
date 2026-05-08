@@ -775,14 +775,94 @@ function renderStats() {
     stats[type]++;
   });
 
+  const streak = calculateStreak();
+
   const content = document.getElementById("statsContent");
 
   content.innerHTML = `
     <p>💪 Calisthenics: ${stats["Calisthenics"]}</p>
     <p>🏃 Joggen: ${stats["Joggen"]}</p>
     <p>🎾 Tennis: ${stats["Tennis"]}</p>
+
+    <hr>
+
+    <p>🔥 Aktuelle Streak: ${streak.current} Wochen</p>
+    <p>🏆 Beste Streak: ${streak.best} Wochen</p>
+    <p style="font-size:12px; color:gray;">(≥2 Trainings pro Woche)</p>
   `;
 }
+
+function getWeekKey(date) {
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+
+  // ISO Woche (Montag Start)
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() + 4 - day);
+
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+
+  return d.getFullYear() + "-W" + week;
+}
+
+    function calculateStreak() {
+  let weeks = {};
+
+  // Trainings pro Woche zählen
+  trainingData.forEach(entry => {
+    const date = new Date(entry.date);
+    const key = getWeekKey(date);
+
+    if (!weeks[key]) weeks[key] = 0;
+    weeks[key]++;
+  });
+
+  // Nur Wochen mit ≥2 zählen
+  const validWeeks = Object.keys(weeks)
+    .filter(k => weeks[k] >= 2)
+    .sort(); // chronologisch
+
+  let currentStreak = 0;
+  let bestStreak = 0;
+
+  for (let i = 0; i < validWeeks.length; i++) {
+    if (i === 0) {
+      currentStreak = 1;
+    } else {
+      const prev = validWeeks[i - 1];
+      const curr = validWeeks[i];
+
+      if (isNextWeek(prev, curr)) {
+        currentStreak++;
+      } else {
+        currentStreak = 1;
+      }
+    }
+
+    if (currentStreak > bestStreak) {
+      bestStreak = currentStreak;
+    }
+  }
+
+  return {
+    current: currentStreak,
+    best: bestStreak
+  };
+}
+
+    function isNextWeek(w1, w2) {
+  const [y1, week1] = w1.split("-W").map(Number);
+  const [y2, week2] = w2.split("-W").map(Number);
+
+  if (y1 === y2 && week2 === week1 + 1) return true;
+
+  // Jahreswechsel (z.B. Woche 52 → 1)
+  if (y2 === y1 + 1 && week1 >= 52 && week2 === 1) return true;
+
+  return false;
+}
+    
 
     function renderAll() {
   renderZeitstrahl();
