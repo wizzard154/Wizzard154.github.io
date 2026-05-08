@@ -778,6 +778,12 @@ function renderStats() {
   const streak = calculateStreak();
 
   const content = document.getElementById("statsContent");
+  
+  const today = new Date();
+  const currentWeekKey = getWeekKey(today);
+  const currentWeekCount = trainingData.filter(e => 
+    getWeekKey(new Date(e.date)) === currentWeekKey
+  ).length;
 
   content.innerHTML = `
     <p>💪 Calisthenics: ${stats["Calisthenics"]}</p>
@@ -789,6 +795,7 @@ function renderStats() {
     <p>🔥 Aktuelle Streak: ${streak.current} Wochen</p>
     <p>🏆 Beste Streak: ${streak.best} Wochen</p>
     <p style="font-size:12px; color:gray;">(≥2 Trainings pro Woche)</p>
+    <p>Diese Woche: ${currentWeekCount}/2 Trainings</p>
   `;
 }
 
@@ -806,64 +813,25 @@ function getWeekKey(date) {
   return d.getFullYear() + "-W" + week;
 }
 
-function calculateStreak() {
-  let weeks = {};
+    let currentStreak = 0;
 
-  // Trainings pro Woche zählen
-  trainingData.forEach(entry => {
-    const date = new Date(entry.date);
-    const key = getWeekKey(date);
+// 👉 Nur starten, wenn aktuelle Woche gültig ist
+if (currentWeekCount >= 2) {
 
-    if (!weeks[key]) weeks[key] = 0;
-    weeks[key]++;
-  });
+  currentStreak = 1;
 
-  const today = new Date();
-  const currentWeekKey = getWeekKey(today);
+  for (let i = validWeeks.length - 1; i > 0; i--) {
+    const prev = validWeeks[i - 1];
+    const curr = validWeeks[i];
 
-  // Prüfen ob aktuelle Woche erfüllt ist
-  const currentWeekCount = weeks[currentWeekKey] || 0;
-
-  // Ende der Woche bestimmen (Sonntag)
-  const endOfWeek = new Date(today);
-  const day = today.getDay();
-  const diff = 7 - (day === 0 ? 7 : day);
-  endOfWeek.setDate(today.getDate() + diff);
-  endOfWeek.setHours(23,59,59,999);
-
-  const weekFinished = today > endOfWeek;
-
-  // ❌ Streak verloren
-  if (weekFinished && currentWeekCount < 2) {
-    return { current: 0, best: getBestStreak(weeks) };
-  }
-
-  // gültige Wochen
-  const validWeeks = Object.keys(weeks)
-    .filter(k => weeks[k] >= 2)
-    .sort();
-
-  let currentStreak = 0;
-
-  // rückwärts zählen (wichtig!)
-  for (let i = validWeeks.length - 1; i >= 0; i--) {
-    if (i === validWeeks.length - 1) {
-      currentStreak = 1;
+    if (isNextWeek(prev, curr)) {
+      currentStreak++;
     } else {
-      if (isNextWeek(validWeeks[i - 1], validWeeks[i])) {
-        currentStreak++;
-      } else {
-        break;
-      }
+      break;
     }
   }
-
-  return {
-    current: currentStreak,
-    best: getBestStreak(weeks)
-  };
 }
-
+    
     function isNextWeek(w1, w2) {
   const [y1, week1] = w1.split("-W").map(Number);
   const [y2, week2] = w2.split("-W").map(Number);
