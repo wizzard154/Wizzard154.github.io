@@ -511,7 +511,9 @@ onAuthStateChanged(auth, (user) => {
     // ===== RESET =====
     function resetData() {
       if (!confirm("Alle Daten löschen?")) return;
-      localStorage.clear();
+      trainingData = [];
+      calisthenicsPlan = [];
+      await save();
       trainingData = [];
       location.reload();
       renderAll();
@@ -693,7 +695,7 @@ onAuthStateChanged(auth, (user) => {
         if (workoutCount % 6 === 0) { increaseIntensity();}
       }
       
-      save();
+      await save();
       renderAll();
     }
 
