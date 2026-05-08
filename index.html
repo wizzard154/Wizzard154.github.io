@@ -687,7 +687,9 @@ onAuthStateChanged(auth, async (user) => {
     
     // Speichert ein abgeschlossenes Training
   async function saveWorkout(key) {
-      trainingData.push({ date: key });
+      if (!trainingData.find(e => e.date === key)) {
+  trainingData.push({ date: key });
+}
 
         const date = new Date(key);
         const type = getType(date); 
