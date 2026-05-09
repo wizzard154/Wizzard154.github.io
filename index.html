@@ -59,13 +59,13 @@ onAuthStateChanged(auth, async (user) => {
         await loadUserData();
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("zeitstrahl").style.display = "flex";
-    document.getElementById("planButton").style.display = "block";
     document.getElementById("resetButton").style.display = "block";
+    document.getElementById("headerButtons").style.display = "flex";
   } else {
     document.getElementById("loginBox").style.display = "block";
     document.getElementById("zeitstrahl").style.display = "none";
-    document.getElementById("planButton").style.display = "none";
     document.getElementById("resetButton").style.display = "none";
+    document.getElementById("headerButtons").style.display = "none";
   }
 
   // 👉 jetzt UI freigeben
@@ -78,7 +78,7 @@ onAuthStateChanged(auth, async (user) => {
       
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maltes Trainingsplan</title>
+  <title>KonFIT</title>
 
   <style>
     /* Grundstil für die Seite */
@@ -124,19 +124,17 @@ onAuthStateChanged(auth, async (user) => {
     .future { background: #eee; }                          /* Noch offen */
 
     /* ===== BUTTONS ===== */
-    #planButton {
-      display: block;
-      margin: 10px auto;
-      padding: 10px 20px;
-      border-radius: 12px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    #resetButton {
+#planButton {
+  display: none;
+  margin: 10px auto;
+  padding: 10px 20px;
+  border-radius: 12px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}    #resetButton {
       position: fixed;
       bottom: 20px;
       right: 20px;
@@ -237,7 +235,7 @@ onAuthStateChanged(auth, async (user) => {
     #planBox {
       background: white;
       width: 90%;
-      max-width: 400px;
+      max-width: 500px;
       max-height: 80vh;
       overflow-y: auto;
       border-radius: 15px;
@@ -251,14 +249,46 @@ onAuthStateChanged(auth, async (user) => {
       margin-bottom: 8px;
       padding: 5px 0;
       border-bottom: 1px solid #eee;
+      gap: 10px;
     }
 
-    .planItem input {
-      width: 50px;
-      text-align: center;
-      padding: 4px;
+    .planItem input:first-child {
+      flex: 1;
+      padding: 6px 8px;
       border: 1px solid #ccc;
       border-radius: 6px;
+      font-size: 14px;
+      height: 34px;
+      box-sizing: border-box;
+    }
+
+    .planItem input:nth-child(2) {
+      width: 60px;
+      text-align: center;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      height: 34px;
+      box-sizing: border-box;
+    }
+
+    .removeBtn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      border-radius: 4px;
+      font-size: 20px;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      flex-shrink: 0;
+      line-height: 1;
     }
 
     #planBox button {
@@ -281,31 +311,85 @@ onAuthStateChanged(auth, async (user) => {
 
 #header h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #4CAF50;
+  font-family: 'Arial', sans-serif;
+  letter-spacing: 2px;
 }
 
 #headerButtons {
-  display: flex;
+  display: none;
   gap: 10px;
 }
 
-#headerButtons button {
-  font-size: 22px;
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 250px;
+  height: 100%;
+  background: white;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar h3 {
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  margin-bottom: 15px;
+}
+
+.sidebar button {
+  width: 100%;
+  padding: 12px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 16px;
+}
+
+.sidebar button:hover {
+  background: #e0e0e0;
+}
+
+.sidebar .closeBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   background: none;
   border: none;
+  font-size: 22px;
   cursor: pointer;
-}
-   
-  </style>
+}  </style>
 </head>
 
 <body>
 
-   <div id="header">
-  <h1>Maltes Trainingsplan</h1>
+  <div id="header">
+  <h1>Kon<em>FIT</em></h1>
   <div id="headerButtons">
-    <button onclick="openKalender()">📅</button>
-      <button onclick="openSettings()">⚙️</button>
+    <button onclick="openSettings()">&#9776;</button>
   </div>
 </div>
 
@@ -377,22 +461,21 @@ onAuthStateChanged(auth, async (user) => {
     <div id="planBox" onclick="event.stopPropagation()">
       <h3>Trainingsplan bearbeiten</h3>
       <div id="planList"></div>
+      <button onclick="addExercise()">+ Übung hinzufügen</button>
       <button onclick="savePlan()">Speichern</button>
     </div>
   </div>
 
-      <!-- ===== SETTINGS MENÜ ===== -->
-<div id="settingsOverlay" class="overlay" onclick="closeSettings()">
-  <div class="popupBox" onclick="event.stopPropagation()">
-    <h3>⚙️ Einstellungen</h3>
-
-    <button onclick="openStats()">📊 Statistik öffnen</button>
-    <button onclick="logout()">🚪 Logout</button>
-
-    <p id="userInfo" style="margin-top:10px; font-size:12px;"></p>
-
-    <button onclick="closeSettings()">Schließen</button>
-  </div>
+      <!-- ===== SIDEBAR ===== -->
+<div id="sidebar" class="sidebar">
+  <button class="closeBtn" onclick="closeSettings()">× Menü</button>
+  <h3></h3>
+  <ul>
+    <li><button onclick="openStats(); closeSettings();">📊 Statistiken</button></li>
+    <li><button onclick="openKalender(); closeSettings();">📅 Kalender</button></li>
+    <li><button onclick="openPlan(); closeSettings();">🏋️ Trainingsplan</button></li>
+    <li><button onclick="logout(); closeSettings();">🚪 Ausloggen</button></li>
+  </ul>
 </div>
 
   <script>
@@ -514,7 +597,25 @@ onAuthStateChanged(auth, async (user) => {
   if (!confirm("Alle Daten löschen?")) return;
 
   trainingData = [];
-  calisthenicsPlan = [];
+  
+  // Standard-Plan wiederherstellen
+  calisthenicsPlan = [
+    { name: "Klimmzüge", reps: "3x" },
+    { name: "Klimmzüge", reps: "3x" },
+    { name: "Klimmzüge", reps: "3x" },
+    { name: "Dips", reps: "3x" },
+    { name: "Dips", reps: "3x" },
+    { name: "Dips", reps: "3x" },
+    { name: "Rudern", reps: "7x" },
+    { name: "Rudern", reps: "7x" },
+    { name: "Rudern", reps: "7x" },
+    { name: "Liegestütze", reps: "5x" },
+    { name: "Liegestütze", reps: "5x" },
+    { name: "Liegestütze", reps: "5x" },
+    { name: "Hanging Leg-Raises", reps: "5x" },
+    { name: "Hanging Leg-Raises", reps: "5x" },
+    { name: "Hanging Leg-Raises", reps: "5x" }
+  ];
 
   await save();
 
@@ -705,6 +806,7 @@ onAuthStateChanged(auth, async (user) => {
     }
 
   function getNextExercise(name) {
+    // Erst in vordefinierten Ketten suchen
     for (let key in progressionChains) {
       const chain = progressionChains[key];
       const index = chain.indexOf(name);
@@ -713,6 +815,24 @@ onAuthStateChanged(auth, async (user) => {
         return chain[index + 1];
       }
     }
+
+    // Dann in benutzerdefinierten Progressionsketten suchen
+    for (let i = 0; i < calisthenicsPlan.length; i++) {
+      if (calisthenicsPlan[i].name === name && calisthenicsPlan[i].progressionChain && calisthenicsPlan[i].progressionChain.length > 0) {
+        const chainIndex = calisthenicsPlan[i].progressionChain.indexOf(name);
+        if (chainIndex !== -1 && chainIndex < calisthenicsPlan[i].progressionChain.length - 1) {
+          return calisthenicsPlan[i].progressionChain[chainIndex + 1];
+        }
+      }
+    }
+
+    // Legacy-Support: alte "progression" einzelne Übung
+    for (let i = 0; i < calisthenicsPlan.length; i++) {
+      if (calisthenicsPlan[i].name === name && calisthenicsPlan[i].progression) {
+        return calisthenicsPlan[i].progression;
+      }
+    }
+
     return null;
   }
 
@@ -730,7 +850,7 @@ onAuthStateChanged(auth, async (user) => {
       ex.reps = reps + "x";
     }
 
-    // 👉 2. Fall: bei 15 → Progression wechseln
+    // 👉 2. Fall: bei 15 → Progression wechseln (nur für vorgegebene Ketten)
     else {
       const next = getNextExercise(ex.name);
 
@@ -738,7 +858,8 @@ onAuthStateChanged(auth, async (user) => {
         ex.name = next;
         ex.reps = "3x";
       } else {
-        // kein nächster Schritt → bleibt bei 15+
+        // Keine Progression verfügbar → bleibt bei 15+
+        // (auch für benutzerdefinierte Übungen)
         ex.reps = "15x";
       }
     }
@@ -861,13 +982,43 @@ onAuthStateChanged(auth, async (user) => {
       calisthenicsPlan.forEach((exercise, index) => {
         const row = document.createElement("div");
         row.className = "planItem";
+        
+        // Prüfe, ob diese Übung in einer vordefinierten Progressionskette ist
+        const isInPredefinedChain = isExerciseInPredefinedChain(exercise.name);
+        
+        // Name-Input: read-only für vordefinierte, editierbar für benutzerdefinierte
+        const nameInputDisabled = isInPredefinedChain ? "disabled" : "";
+        const nameInputStyle = isInPredefinedChain ? "background-color: #f5f5f5; cursor: not-allowed;" : "";
+        
         row.innerHTML = `
-          <span>${exercise.name}</span>
+          <input type="text" value="${exercise.name}" oninput="updateName(${index}, this.value)" ${nameInputDisabled} style="${nameInputStyle}">
           <input type="number" min="1"
                   value="${exercise.reps.replace('x','')}" 
                   oninput="updateReps(${index}, this.value)">
+          <button onclick="removeExercise(${index})" class="removeBtn">×</button>
         `;
         list.appendChild(row);
+
+        // Progressions-Eingabefeld nur für Übungen, die nicht in vordefinierten Ketten sind
+        if (!isInPredefinedChain) {
+          const progressionRow = document.createElement("div");
+          progressionRow.style.marginBottom = "12px";
+          progressionRow.style.fontSize = "12px";
+          progressionRow.style.color = "#666";
+          
+          const chainValue = exercise.progressionChain ? exercise.progressionChain.join(", ") : (exercise.progression || "");
+          
+          progressionRow.innerHTML = `
+            <label>Progressionskette (komma-getrennt):</label><br>
+            <input type="text" 
+                   value="${chainValue}" 
+                   placeholder="z.B. Übung 1, Übung 2, Übung 3" 
+                   oninput="updateProgressionChain(${index}, this.value)"
+                   style="width: 100%; padding: 6px; box-sizing: border-box; margin-top: 4px;">
+            <p style="font-size: 11px; color: #999; margin-top: 4px;">Tipp: Geben Sie mehrere Stufen ein (komma-getrennt). Nach 15 Wiederholungen wird zur nächsten Stufe gewechselt.</p>
+          `;
+          list.appendChild(progressionRow);
+        }
       });
     }
 
@@ -885,6 +1036,56 @@ onAuthStateChanged(auth, async (user) => {
   
   calisthenicsPlan[index].reps = num + "x";
 }
+
+    function updateName(index, value) {
+      calisthenicsPlan[index].name = value;
+    }
+
+    function updateProgression(index, value) {
+      if (!calisthenicsPlan[index]) return;
+      if (value.trim() === "") {
+        calisthenicsPlan[index].progression = undefined;
+      } else {
+        calisthenicsPlan[index].progression = value.trim();
+      }
+    }
+
+    function updateProgressionChain(index, value) {
+      if (!calisthenicsPlan[index]) return;
+      
+      const trimmed = value.trim();
+      if (trimmed === "") {
+        // Leere Eingabe → lösche Progressionskette und alte Progression
+        calisthenicsPlan[index].progressionChain = undefined;
+        calisthenicsPlan[index].progression = undefined;
+      } else {
+        // Komma-getrennte Werte in Array umwandeln
+        const chain = trimmed.split(",").map(item => item.trim()).filter(item => item !== "");
+        calisthenicsPlan[index].progressionChain = chain;
+        // Alte Progression entfernen, wenn neue Kette eingegeben wurde
+        calisthenicsPlan[index].progression = undefined;
+      }
+    }
+
+    function isExerciseInPredefinedChain(exerciseName) {
+      for (let key in progressionChains) {
+        if (progressionChains[key].includes(exerciseName)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function addExercise() {
+      calisthenicsPlan.push({ name: "Neue Übung", reps: "3x" });
+      renderPlan();
+    }
+
+    function removeExercise(index) {
+      if (!confirm("Willst du diese Übung wirklich löschen?")) return;
+      calisthenicsPlan.splice(index, 1);
+      renderPlan();
+    }
 
     function openStats() {
   document.getElementById("statsOverlay").style.display = "flex";
@@ -1061,23 +1262,22 @@ function login() {
     .catch(err => alert(err.message));
 }
 
+function switchToRegister() {}
+function switchToLogin() {}
+
 function logout() {
   firebaseAuth.signOut(auth).then(() => {
-    document.getElementById("settingsOverlay").style.display = "none";
-      location.reload()
+    closeSettings();
+    location.reload();
   });
 }
 
 function openSettings() {
-  document.getElementById("settingsOverlay").style.display = "flex";
-
-  const user = auth.currentUser;
-  document.getElementById("userInfo").innerText =
-    user ? `Eingeloggt als: ${user.email}` : "Nicht eingeloggt";
+  document.getElementById("sidebar").classList.add("open");
 }
 
 function closeSettings() {
-  document.getElementById("settingsOverlay").style.display = "none";
+  document.getElementById("sidebar").classList.remove("open");
 }
         
 function renderAll() {
